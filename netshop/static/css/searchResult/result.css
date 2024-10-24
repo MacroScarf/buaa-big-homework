@@ -1,0 +1,213 @@
+/* 未搜索到*/
+.no-results {
+    font-size: 30px;
+    color: #9c9c9c;
+    width: 100%;
+    margin: 100px auto;
+    text-align: center;
+}
+
+/* good搜索结果*/
+.good, .shop {
+    width: 100%;
+    height: 220px;
+    padding: 0 30px;
+    margin: 30px auto;
+}
+
+.good a, .shop .shop-card {
+    color: #444444;;
+    display: block;
+    width: 90%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 10px;
+    border-radius: 30px;
+    background: whitesmoke;
+    position: relative;
+    transition: transform 1s linear;
+    backface-visibility: hidden; /* 新增 */
+}
+
+.good a:hover, .shop .shop-card:hover {
+    box-shadow: 3px 3px 3px 3px rgba(0, 0, 0, 0.3);
+    background: white;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -webkit-transform: translateZ(0) scale(1.0, 1.0);
+}
+
+.good img, .shop .shop-logo {
+    width: 195px;
+    height: 195px;
+    border-radius: 20px;
+    margin: 3px 5px;
+}
+
+.good .name, .shop .name {
+    position: absolute;
+    top: 15px;
+    left: 230px;
+    font-weight: bold;
+    font-size: 25px;
+    font-family: 'Playfair Display', serif;
+}
+
+.good .name:hover, .shop .name:hover {
+    color: #fd6b00;
+}
+
+.good .gdesc {
+    position: absolute;
+    top: 50px;
+    left: 230px;
+    font-size: 20px;
+    /*font-family: 'Roboto', sans-serif;*/
+    font-family: 'Brush Script MT', cursive;
+    color: #cbcbcb;
+    width: 700px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; /* 防止文本换行 */
+}
+
+.good .sales-volume {
+    position: absolute;
+    top: 80px;
+    left: 232px;
+    font-size: 15px;
+    color: #cbcbcb;
+    font-family: 'Brush Script MT', cursive;
+}
+
+.good .price {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    font-size: 30px;
+    color: #fd6b00;
+}
+
+.good .hotLabel, .good .usedLabel {
+    position: absolute;
+    width: 50px;
+    height: 30px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    bottom: 20px;
+    left: 230px;
+}
+
+.good .hotLabel {
+    background-color: #fd6b00;
+    color: white;
+}
+
+.good .usedLabel {
+    background-color: yellow;
+    color: black;
+}
+
+/*shop搜索结果*/
+.shop {
+    display: inline-block;
+}
+
+.shop .shopinfo {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.shopinfo img {
+    margin: 0;
+    padding: 0;
+}
+
+.info-container {
+    display: none;
+    position: absolute;
+    top: 19px;
+    right: 0px;
+    width: 120px;
+    height: 70px;
+    background: white;
+    border: 1px solid black;
+    padding: 5px;
+    font-size: 12px;
+    color: #4c4b4b;
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.shop-rating, .shop-fans, .shop-sales {
+    margin: 3px 0;
+}
+
+.shopinfo:hover .info-container {
+    display: block;
+}
+
+/*商店热门商品*/
+.goodList {
+    position: absolute;
+    top: 50px;
+    left: 320px;
+    display: flex;
+    /*width: 500px;*/
+    height: 160px;
+    padding: 5px;
+}
+
+.good-item {
+    border: 1px solid #E6E6E6;
+    margin: 0 5px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.goodList img {
+    display: block;
+    width: 120px;
+    height: 120px;
+    border-radius: 10px;
+    margin: 5px 5px;
+    cursor: pointer;
+}
+
+.shop .price {
+    font-size: 12px;
+    color: #a3a1a1;
+    margin: 0 7px;
+}
+
+.shop .good-item .hot {
+    position: absolute;
+    bottom: 0;
+    right: 10px;
+    font-size: 15px;
+    font-style: italic;
+    font-weight: bold;
+    font-family: 'Lucida Console', monospace;
+    color: red;
+    cursor: default;
+}
+
+.shop .name {
+    cursor: pointer;
+}
+
+.goodList-else {
+    position: absolute;
+    top: 40px;
+    left: 230px;
+    padding: 5px;
+    color: #9c9c9c;
+}
+

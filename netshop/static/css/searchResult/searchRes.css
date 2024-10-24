@@ -1,0 +1,102 @@
+#body {
+    background-color: #fff;
+    width: 1200px;
+    min-height: 700px;
+    border-radius: 50px;
+    overflow: hidden;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 侧边栏fixed-bar */
+.fixed-bar {
+    position: fixed;
+    right: 0;
+    top: 45%;
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px;
+    background-color: white;
+    padding: 10px;
+}
+
+#back-to-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#back-to-top img {
+    margin-bottom: 5px;
+}
+
+#back-to-top span {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* 排序栏 nav*/
+.nav {
+    margin: 20px auto 10px auto;
+    height: 30px;
+}
+
+#compre, #sales, #rating, #price, #fan-num {
+    float: left;
+    margin: 0 25px;
+    font-size: 18px;
+}
+
+#compre, #sales, #rating, #fan-num {
+    cursor: pointer;
+}
+
+#compre:hover, #sales:hover, #rating:hover, #price:hover ,#fan-num:hover{
+    color: orange;
+    font-weight: bold;
+}
+
+.active {
+    color: orange;
+}
+
+.sub-menu {
+    /* 样式子菜单，默认隐藏 */
+    display: none;
+    position: absolute;
+    border-radius: 10px;
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    color: #444444;
+    font-weight: lighter;
+    min-width: 100px; /* 设置子菜单的最小宽度 */
+    padding: 5px 0;
+    z-index: 1000; /* 确保足够高的 z-index */
+}
+
+.sub-item {
+    /* 样式子菜单项 */
+    padding: 5px 0;
+    font-size: 15px;
+    cursor: pointer;
+    text-align: center;
+}
+
+#price:hover .sub-menu {
+    /* 当鼠标悬停在菜单项时显示子菜单 */
+    display: block;
+}
+
+.sub-item:hover {
+    background: whitesmoke;
+}
+
+.active-sub-item {
+    background: whitesmoke;
+}
+
+/* 分割线 */
+.line {
+    width: 1100px;
+    margin: 0px auto;
+    border: 1px solid whitesmoke;
+}

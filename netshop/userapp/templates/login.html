@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}用户登录页面{% endblock %}
+
+{% block headerjs %}
+    <script type="text/javascript" src="/static/js/md5-min.js"></script>
+    <link rel="stylesheet" href="/static/css/login.css">
+{% endblock %}
+
+{% block main %}
+    <div class="login-body">
+        <div class="login-card">
+            <div class="top">
+                <div id="emailLog">密码登录</div>
+            </div>
+
+            <form id="login-form" method="post" onsubmit="return login(event);">
+                {% csrf_token %}
+                <div class="login-input-box">
+                    <input type="text" id="account" name="account" value=""
+                           class="login-admin active" placeholder="请输入用户名">
+
+                    <input type="password" id="password" name="password" value="" autocomplete="off"
+                           class="login-password" placeholder="请输入密码">
+
+                    <div class="code-container">
+                        <input type="text" id="code" name="code" value="" autocomplete="off"
+                               placeholder="请输入验证码">
+                        <img id="captcha" src="/user/loadCode/?r={{ current_timestamp }}" onclick="changeCode(this)"
+                             alt=u"你的浏览器不支持查看该图片">
+                    </div>
+
+                    <input type="hidden" name="redirect" value="{{ redirect }}">
+                    <input type="hidden" name="cartitems" value="{{ cartitems }}">
+
+                    <button type="submit" class="login-button">登录</button>
+                </div>
+            </form>
+
+            <div class="bottom">
+                <a href="/user/register/">注册</a>
+                <a href="">找回密码</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+        // 切换验证码
+        function changeCode(captchaImg) {
+            // 生成新的时间戳来防止浏览器缓存
+            let timestamp = new Date().getTime();
+            // 更新图片的 src 属性
+            captchaImg.src = '/user/loadCode/?r=' + timestamp;
+        }
+
+        // 清除错误信息
+        function clearErrorMessages() {
+            $('#account').removeClass('short-password').attr('placeholder', '请输入用户名');
+            $('#password').removeClass('short-password').attr('placeholder', '请输入密码');
+            $('#code').removeClass('short-password').attr('placeholder', '请输入验证码');
+        }
+
+        function login(event) {
+            event.preventDefault(); // 阻止表单的默认提交行为
+
+            clearErrorMessages();  // 清除之前的错误信息
+
+            // 收集登录信息和验证码
+            const account = $('#account').val();
+            const password = $('#password').val();
+            const code = $('#code').val();
+            const hex_pwd = hex_md5(password);
+
+            // 发送AJAX请求进行登录验证
+            $.ajax({
+                url: '/user/login/',
+                method: 'POST',
+                data: {
+                    'account': account,
+                    'password': hex_pwd,
+                    'code': code,
+                    'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // 登录成功，跳转到相应页面或执行其他操作
+                        window.location.href = '/user/center/';
+                    } else {
+                        if (response.error === '用户未注册') {
+                            $('#account').addClass('short-password').attr('placeholder', response.error);
+                            changeCode($('#captcha')[0]);
+                        } else if (response.error === '密码错误') {
+                            $('#password').addClass('short-password').attr('placeholder', response.error);
+                            changeCode($('#captcha')[0]);
+                        } else if (response.error === '验证码错误') {
+                            $('#code').addClass('short-password').attr('placeholder', response.error);
+                            changeCode($('#captcha')[0]);
+                        } else {
+                            alert('登录失败');
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error: " + error);
+                }
+            });
+
+            $('#account').val('');
+            $('#password').val('');
+            $('#code').val('');
+        }
+    </script>
+{% endblock %}

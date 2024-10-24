@@ -1,0 +1,31 @@
+<!--装入搜索页面结果的部分-->
+{% load good_filters %}
+{% if not results %}
+    <div class="no-results">未搜索到相关商品</div>
+{% endif %}
+{% for good in results %}
+    {% if good.isUsed == False %}
+        <div class="good">
+            <a href="/goods/goodsdetails/{{ good.id }}">
+                <img src="{{ good.getColorImg }}">
+                <div class="name">{{ good.gname }}</div>
+                <div class="gdesc">{{ good.gdesc }}</div>
+                <div class="sales-volume">已售 {{ good.getSalesVolume|format_num }}</div>
+                <div class="price">￥{{ good.price }}</div>
+                {% if good.isHot %}
+                    <div class="hotLabel">HOT</div>
+                {% endif %}
+            </a>
+        </div>
+    {% else %}
+        <div class="good">
+            <a href="/goods/usedgoodsdetail/{{ good.id }}">
+                <img src="{{ good.getColorImg }}">
+                <div class="name">{{ good.gname }}</div>
+                <div class="gdesc">{{ good.gdesc }}</div>
+                <div class="price">￥{{ good.price }}</div>
+                <div class="usedLabel">二手</div>
+            </a>
+        </div>
+    {% endif %}
+{% endfor %}

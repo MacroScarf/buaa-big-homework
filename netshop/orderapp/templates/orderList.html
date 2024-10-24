@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+
+{% block title %}我的订单{% endblock %}
+
+{% block headerjs %}
+    <link rel="stylesheet" type="text/css" href="/static/css/order.css">
+{% endblock %}
+
+{% block main %}
+    <div class="border"></div>
+    <div class="concent">
+        <div class="paycont">
+            <h2>我的订单</h2>
+            <div class="orderTable">
+                <div class="statuslist">
+                    <span class="order-status dft" id="all">全部订单</span>
+                    <span class="order-status" id="unpaid">未支付</span>
+                    <span class="order-status" id="paid">已支付</span>
+                    {% if user.uidentity == 'campus-merchant' %}
+                        <span class="order-status" id="sold">售出的订单</span>
+                    {% else %}
+                        <span class="order-status" id="usedSold">售出的二手商品</span>
+                    {% endif %}
+                </div>
+
+                <div class="orderList">
+                    <table class="order-info">
+                        <thead class="table-head">
+                            <tr>
+                                <th class="thead-good">商品信息</th>
+                                <th class="thead-price">单价</th>
+                                <th class="thead-amount">数量</th>
+                                <th class="thead-sum">金额</th>
+                                <th class="thead-status">订单状态</th>
+                                <th class="thead-op">订单操作</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr class="border">
+                                <td colspan="6"></td>
+                            </tr>
+                        </tbody>
+
+                        <tbody class="table-body">
+                            {% for order in orderListAll %}
+                                <tr class="order-container">
+                                    <td class="tbody-onum" colspan="6">
+                                        <span class="tbgood-onum">订单号：{{ order.order_num }}</span>
+                                    </td>
+                                </tr>
+                                <tr class="order-container">
+                                    <td class="tbody-good" colspan="3">
+                                        {% for orderitem in order.orderitem_set.all %}
+                                            <div class="good-item">
+                                                {% if orderitem.colorid == 0 %}
+                                                    <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                                        <img src="{{ orderitem.getUsedGoods.getColorImg }}" class="tbgood-img" alt="">
+                                                    </a>
+                                                    <div class="tbody-text">
+                                                        <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                                            <span class="tbgood-span">{{ orderitem.getUsedGoods.gname }}</span>
+                                                        </a>
+                                                    </div>
+                                                    <span class="tbody-price">￥{{ orderitem.getUsedGoods.price }}</span>
+                                                    <span class="tbody-amount">{{ orderitem.count }}</span>
+                                                {% else %}
+                                                    <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                                        <img src="{{ orderitem.getColor.colorurl }}" class="tbgood-img" alt="">
+                                                    </a>
+                                                    <div class="tbody-text">
+                                                        <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                                            <span class="tbgood-span">{{ orderitem.getGoods.gname }}</span>
+                                                        </a>
+                                                        <div class="tbgood-p">
+                                                            <span>
+                                                                颜色：{{ orderitem.getColor.colorname }}
+                                                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                                                尺寸：{{ orderitem.getSize.sname }}
+                                                            </span>
+                                                            <span class="order-shop right">
+                                                                <a href="/shop/{{ orderitem.getShop.id }}/shopdetail/">
+                                                                    {{ orderitem.getShop.sname }}
+                                                                </a>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <span class="tbody-price">￥{{ orderitem.getGoods.price }}</span>
+                                                    <span class="tbody-amount">{{ orderitem.count }}</span>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </td>
+                                    <td class="tbody-sum">￥{{ order.totalPrice }}</td>
+                                    <td class="tbody-status">{{ order.status }}</td>
+
+                                    <td class="tbody-op">
+                                        {% if order.status == '未支付' %}
+                                            <a href="/order/toPay/?orderId={{ order.id }}&orderNum={{ order.order_num }}/" class="gotopay">
+                                                去支付
+                                            </a>
+                                        {% else %}
+                                            {% for orderitem in order.orderitem_set.all %}
+                                                {% if orderitem.colorid != 0 %}
+                                                    <div class="gotopaycont">
+                                                        <a href="/goods/goodsdetails/{{ orderitem.goodsid }}" class="gotopay">
+                                                            去评价
+                                                        </a>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr class="border">
+                                    <td colspan="6"></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% csrf_token %}
+{% endblock %}
+
+{% block footerjs %}
+<script>
+    $(document).ready(function () {
+        $('.order-status').on('click', function () {
+            $('.order-status').removeClass('dft');
+            $(this).addClass('dft');
+
+            var activeOrderStatus = $('.order-status.dft');
+            var activeId = activeOrderStatus.attr('id');
+
+            var tableBody = $('.table-body');
+            var orderHTML;
+            tableBody.empty();
+
+            if (activeId === 'all') {
+                orderHTML = `
+                    {% for order in orderListAll %}
+                        <tr class="order-container">
+                            <td class="tbody-onum" colspan="6">
+                                <span class="tbgood-onum">订单号：{{ order.order_num }}</span>
+                            </td>
+                        </tr>
+                        <tr class="order-container">
+                            <td class="tbody-good" colspan="3">
+                                {% for orderitem in order.orderitem_set.all %}
+                                    <div class="good-item">
+                                        {% if orderitem.colorid == 0 %}
+                                            <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                                <img src="{{ orderitem.getUsedGoods.getColorImg }}" class="tbgood-img" alt="">
+                                            </a>
+                                            <div class="tbody-text">
+                                                <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                                    <span class="tbgood-span">{{ orderitem.getUsedGoods.gname }}</span>
+                                                </a>
+                                            </div>
+                                            <span class="tbody-price">￥{{ orderitem.getUsedGoods.price }}</span>
+                                            <span class="tbody-amount">{{ orderitem.count }}</span>
+                                        {% else %}
+                                            <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                                <img src="{{ orderitem.getColor.colorurl }}" class="tbgood-img" alt="">
+                                            </a>
+                                            <div class="tbody-text">
+                                                <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                                    <span class="tbgood-span">{{ orderitem.getGoods.gname }}</span>
+                                                </a>
+                                                <div class="tbgood-p">
+                                                    <span>
+                                                        颜色：{{ orderitem.getColor.colorname }}
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                                        尺寸：{{ orderitem.getSize.sname }}
+                                                    </span>
+                                                    <span class="order-shop right">
+                                                        <a href="/shop/{{ orderitem.getShop.id }}/shopdetail/">
+                                                            {{ orderitem.getShop.sname }}
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span class="tbody-price">￥{{ orderitem.getGoods.price }}</span>
+                                            <span class="tbody-amount">{{ orderitem.count }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </td>
+                            <td class="tbody-sum">￥{{ order.totalPrice }}</td>
+                            <td class="tbody-status">{{ order.status }}</td>
+
+                            <td class="tbody-op">
+                                {% if order.status == '未支付' %}
+                                    <a href="/order/toPay/?orderId={{ order.id }}&orderNum={{ order.order_num }}/" class="gotopay">
+                                        去支付
+                                    </a>
+                                {% else %}
+                                    {% for orderitem in order.orderitem_set.all %}
+                                        {% if orderitem.colorid != 0 %}
+                                            <div class="gotopaycont">
+                                                <a href="/goods/goodsdetails/{{ orderitem.goodsid }}" class="gotopay">
+                                                    去评价
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr class="border">
+                            <td colspan="6"></td>
+                        </tr>
+                    {% endfor %}
+                `;
+            } else if (activeId === 'unpaid') {
+                orderHTML = `
+                    {% for order in orderListUnpaid %}
+                        <tr class="order-container">
+                            <td class="tbody-onum" colspan="6">
+                                <span class="tbgood-onum">订单号：{{ order.order_num }}</span>
+                            </td>
+                        </tr>
+                        <tr class="order-container">
+                            <td class="tbody-good" colspan="3">
+                                {% for orderitem in order.orderitem_set.all %}
+                                    <div class="good-item">
+                                        {% if orderitem.colorid == 0 %}
+                                            <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                                <img src="{{ orderitem.getUsedGoods.getColorImg }}" class="tbgood-img" alt="">
+                                            </a>
+                                            <div class="tbody-text">
+                                                <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                                    <span class="tbgood-span">{{ orderitem.getUsedGoods.gname }}</span>
+                                                </a>
+                                            </div>
+                                            <span class="tbody-price">￥{{ orderitem.getUsedGoods.price }}</span>
+                                            <span class="tbody-amount">{{ orderitem.count }}</span>
+                                        {% else %}
+                                            <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                                <img src="{{ orderitem.getColor.colorurl }}" class="tbgood-img" alt="">
+                                            </a>
+                                            <div class="tbody-text">
+                                                <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                                    <span class="tbgood-span">{{ orderitem.getGoods.gname }}</span>
+                                                </a>
+                                                <div class="tbgood-p">
+                                                    <span>
+                                                        颜色：{{ orderitem.getColor.colorname }}
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                                        尺寸：{{ orderitem.getSize.sname }}
+                                                    </span>
+                                                    <span class="order-shop right">
+                                                        <a href="/shop/{{ orderitem.getShop.id }}/shopdetail/">
+                                                            {{ orderitem.getShop.sname }}
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span class="tbody-price">￥{{ orderitem.getGoods.price }}</span>
+                                            <span class="tbody-amount">{{ orderitem.count }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </td>
+                            <td class="tbody-sum">￥{{ order.totalPrice }}</td>
+                            <td class="tbody-status">{{ order.status }}</td>
+                            <td class="tbody-op">
+                                <a href="/order/toPay/?orderId={{ order.id }}&orderNum={{ order.order_num }}/" class="gotopay">
+                                    去支付
+                                </a>
+                            </td>
+                        </tr>
+                        <tr class="border">
+                            <td colspan="6"></td>
+                        </tr>
+                    {% endfor %}
+                `;
+            } else if (activeId === 'paid') {
+                orderHTML = `
+                    {% for order in orderListPaid %}
+                        <tr class="order-container">
+                            <td class="tbody-onum" colspan="6">
+                                <span class="tbgood-onum">订单号：{{ order.order_num }}</span>
+                            </td>
+                        </tr>
+                        <tr class="order-container">
+                            <td class="tbody-good" colspan="3">
+                                {% for orderitem in order.orderitem_set.all %}
+                                    <div class="good-item">
+                                        {% if orderitem.colorid == 0 %}
+                                            <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                                <img src="{{ orderitem.getUsedGoods.getColorImg }}" class="tbgood-img" alt="">
+                                            </a>
+                                            <div class="tbody-text">
+                                                <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                                    <span class="tbgood-span">{{ orderitem.getUsedGoods.gname }}</span>
+                                                </a>
+                                            </div>
+                                            <span class="tbody-price">￥{{ orderitem.getUsedGoods.price }}</span>
+                                            <span class="tbody-amount">{{ orderitem.count }}</span>
+                                        {% else %}
+                                            <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                                <img src="{{ orderitem.getColor.colorurl }}" class="tbgood-img" alt="">
+                                            </a>
+                                            <div class="tbody-text">
+                                                <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                                    <span class="tbgood-span">{{ orderitem.getGoods.gname }}</span>
+                                                </a>
+                                                <div class="tbgood-p">
+                                                    <span>
+                                                        颜色：{{ orderitem.getColor.colorname }}
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                                        尺寸：{{ orderitem.getSize.sname }}
+                                                    </span>
+                                                    <span class="order-shop right">
+                                                        <a href="/shop/{{ orderitem.getShop.id }}/shopdetail/">
+                                                            {{ orderitem.getShop.sname }}
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span class="tbody-price">￥{{ orderitem.getGoods.price }}</span>
+                                            <span class="tbody-amount">{{ orderitem.count }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </td>
+                            <td class="tbody-sum">￥{{ order.totalPrice }}</td>
+                            <td class="tbody-status">{{ order.status }}</td>
+                            <td class="tbody-op">
+                                {% if order.status == '未支付' %}
+                                    <a href="/order/toPay/?orderId={{ order.id }}&orderNum={{ order.order_num }}/" class="gotopay">
+                                        去支付
+                                    </a>
+                                {% else %}
+                                    {% for orderitem in order.orderitem_set.all %}
+                                        {% if orderitem.colorid != 0 %}
+                                            <div class="gotopaycont">
+                                                <a href="/goods/goodsdetails/{{ orderitem.goodsid }}" class="gotopay">
+                                                    去评价
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr class="border">
+                            <td colspan="6"></td>
+                        </tr>
+                    {% endfor %}
+                `;
+            } else if (activeId === 'sold') {
+                orderHTML = `
+                    {% for orderitem in myOrderItemList %}
+                        <tr class="order-container">
+                            <td class="tbody-onum" colspan="6">
+                                <span class="tbgood-onum">订单号：{{ orderitem.getOrder.order_num }}</span>
+                            </td>
+                        </tr>
+                        <tr class="order-container">
+                            <td class="tbody-good" colspan="3">
+                                <div class="good-item">
+                                    <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                        <img src="{{ orderitem.getColor.colorurl }}" class="tbgood-img" alt="">
+                                    </a>
+                                    <div class="tbody-text">
+                                        <a href="/goods/goodsdetails/{{ orderitem.goodsid }}/">
+                                            <span class="tbgood-span">{{ orderitem.getGoods.gname }}</span>
+                                        </a>
+                                        <div class="tbgood-p">
+                                            <span>
+                                                颜色：{{ orderitem.getColor.colorname }}
+                                                &nbsp;&nbsp;&nbsp;&nbsp;
+                                                尺寸：{{ orderitem.getSize.sname }}
+                                            </span>
+                                            <span class="order-shop right">
+                                                <a href="/shop/{{ orderitem.getShop.id }}/shopdetail/">
+                                                    {{ orderitem.getShop.sname }}
+                                                </a>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <span class="tbody-price">￥{{ orderitem.getGoods.price }}</span>
+                                    <span class="tbody-amount">{{ orderitem.count }}</span>
+                                </div>
+                            </td>
+                            <td class="tbody-sum">￥{{ orderitem.getTotalPrice }}</td>
+                            <td class="tbody-status">{{ orderitem.getOrder.status }}</td>
+                            <td class="tbody-op"> </td>
+                        </tr>
+                        <tr class="border">
+                            <td colspan="6"></td>
+                        </tr>
+                    {% endfor %}
+                `;
+            } else if (activeId === 'usedSold') {
+                orderHTML = `
+                    {% for orderitem in usedOrderItemList %}
+                        <tr class="order-container">
+                            <td class="tbody-onum" colspan="6">
+                                <span class="tbgood-onum">订单号：{{ orderitem.getOrder.order_num }}</span>
+                            </td>
+                        </tr>
+                        <tr class="order-container">
+                            <td class="tbody-good" colspan="3">
+                                <div class="good-item">
+                                    <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                        <img src="{{ orderitem.getUsedGoods.getColorImg }}" class="tbgood-img" alt="">
+                                    </a>
+                                    <div class="tbody-text">
+                                        <a href="/goods/usedgoodsdetail/{{ orderitem.goodsid }}/">
+                                            <span class="tbgood-span">{{ orderitem.getUsedGoods.gname }}</span>
+                                        </a>
+                                    </div>
+                                    <span class="tbody-price">￥{{ orderitem.getUsedGoods.price }}</span>
+                                    <span class="tbody-amount">{{ orderitem.count }}</span>
+                                </div>
+                            </td>
+                            <td class="tbody-sum">￥{{ orderitem.getUsedGoods.price }}</td>
+                            <td class="tbody-status">{{ orderitem.getOrder.status }}</td>
+                            <td class="tbody-op"> </td>
+                        </tr>
+                        <tr class="border">
+                            <td colspan="6"></td>
+                        </tr>
+                    {% endfor %}
+                `;
+            }
+            tableBody.append(orderHTML);
+        });
+    });
+</script>
+{% endblock %}

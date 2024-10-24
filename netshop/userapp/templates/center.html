@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}用户中心{% endblock %}
+{% block headerjs %}
+    <link rel="stylesheet" href="/static/css/center.css">
+{% endblock %}
+{% block main %}
+    <div class="center-body">
+        <div class="sidebar">
+            <div class="user" style="display: none">{{ identity }}:{{ user.uname }}</div>
+            <ul class="options">
+                <li class="center" {% if identity == '校园商户' %}style="margin-top:35px"
+                    {% else %}style="margin-top:65px"{% endif %} onclick="showMessage()">个人信息
+                </li>
+                <li class="address" data-content-url="/user/center/?option=address">地址管理</li>
+                <li class="collection" data-content-url="/user/center/?option=myCollect">我的收藏</li>
+                <li class="follow" data-content-url="/user/center/?option=myFollow">我的关注</li>
+                {% if identity == '校园商户' %}
+                    <li class="shop" data-content-url="/user/center/?option=openShop">我要开店</li>
+                {% endif %}
+                {% if identity == '校园商户' %}
+                    <li class="myshop" data-content-url="/user/center/?option=myShop">我的店铺</li>
+                {% endif %}
+                {% if identity == '学生' %}
+                    <li class="second-hand" data-content-url="/user/center/?option=usedGoods">二手物品</li>
+                {% endif %}
+                <li class="footprint" data-content-url="/user/center/?option=footprint">历史足迹</li>
+                <li class="logout">退出登录</li>
+            </ul>
+        </div>
+
+        <div class="main">
+            <div class="bottom">
+                <div class="bottom-content">
+                    <div class="avatar-container">
+                        <img class="avatar" src="/static/images/avatar.jpg" alt=u"这是默认头像">
+                    </div>
+
+                    <div class="user-message-container">
+                        <div class="user-message">
+                            <img src="/static/images/icon/用户信息.png" alt="">
+                            <span class="grey-font">用户名：</span>
+                        </div>
+                        <div class="user-message">
+                            <img src="/static/images/icon/用户身份.png" alt="">
+                            <span class="grey-font">用户身份：</span>
+                        </div>
+                        <div class="user-message">
+                            <img src="/static/images/icon/所属学校.png" alt="">
+                            <span class="grey-font">所属学校：</span>
+                        </div>
+                        <div class="user-message">
+                            <img src="/static/images/icon/钱包.png" alt="">
+                            <span class="grey-font">钱包余额：</span>
+                        </div>
+                    </div>
+
+                    <div class="user-message-container2">
+                        <div class="user-message2">
+                            <span class="grey-font">{{ user.uname }}</span>
+                        </div>
+                        <div class="user-message2">
+                            <span class="grey-font">{{ identity }}</span>
+                        </div>
+                        <div class="user-message2">
+                            <span class="grey-font">北京航空航天大学</span>
+                        </div>
+                        <div class="">
+                            <div class="user-message2">
+                                <span class="grey-font" id="balance">￥{{ user.balance }}</span>
+                            </div>
+                            <button type="button" onclick="openRechargeForm()">充值</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="recharge-form" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRechargeForm()">&times;</span>
+            <h2 style="margin-bottom: 20px;">充值</h2>
+            <form id="new-recharge-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="money">请输入充值金额:</label>
+                    <input type="number" id="money" name="money" required value="">
+                </div>
+                <button type="button" onclick="submitRecharge()">提交</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+        $(document).ready(function () {
+            $('.logout').click(function () {
+                $.get('/user/logout/', function (result) {
+                    var flag = result.flag;
+                    if (flag) {
+                        location.href = '/user/login/';
+                    }
+                });
+            });
+
+            // 点击事件处理程序
+            $('.options li').not('.logout').click(function () {
+                //先判断用户有没有登录
+                if ($('.user').text().trim() === '') {
+                    alert('请先登录');
+                    window.location.href = '/user/login/';
+                    return;
+                }
+
+                const contentUrl = $(this).data('content-url');
+
+                // 移除所有 li 元素的活动样式
+                $('.options li').removeClass('active');
+
+                // 给当前被点击的 li 元素添加活动样式
+                $(this).addClass('active');
+
+                // 发送 AJAX 请求加载对应的内容
+                if (contentUrl) {
+                    $.get(contentUrl, function (data) {
+                        // 清空 .bottom 中的所有内容
+                        $('.bottom').empty();
+                        // 将新的内容插入到 .bottom 中
+                        $('.bottom').append(data);
+                    });
+                }
+            });
+        });
+
+        function showMessage() {
+            $('.bottom').empty();
+            var data = `
+                <div class="bottom-content">
+                    <div class="avatar-container">
+                        <img class="avatar" src="/static/images/avatar.jpg" alt=u"这是默认头像">
+                    </div>
+
+                    <div class="user-message-container">
+                        <div class="user-message">
+                            <img src="/static/images/icon/用户信息.png" alt="">
+                            <span class="grey-font">用户名：</span>
+                        </div>
+                        <div class="user-message">
+                            <img src="/static/images/icon/用户身份.png" alt="">
+                            <span class="grey-font">用户身份：</span>
+                        </div>
+                        <div class="user-message">
+                            <img src="/static/images/icon/所属学校.png" alt="">
+                            <span class="grey-font">所属学校：</span>
+                        </div>
+                        <div class="user-message">
+                            <img src="/static/images/icon/钱包.png" alt="">
+                            <span class="grey-font">钱包余额：</span>
+                        </div>
+                    </div>
+
+                    <div class="user-message-container2">
+                        <div class="user-message2">
+                            <span class="grey-font">{{ user.uname }}</span>
+                        </div>
+                        <div class="user-message2">
+                            <span class="grey-font">{{ identity }}</span>
+                        </div>
+                        <div class="user-message2">
+                            <span class="grey-font">北京航空航天大学</span>
+                        </div>
+                        <div class="">
+                            <div class="user-message2">
+                                <span class="grey-font" id="balance">￥{{ user.balance }}</span>
+                            </div>
+                            <button type="button" onclick="openRechargeForm()">充值</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('.bottom').append(data);
+        }
+
+        function openRechargeForm() {
+            document.getElementById('recharge-form').style.display = 'block';
+            $('#new-recharge-form input[type="number"]').val('');
+        }
+
+        function closeRechargeForm() {
+            document.getElementById('recharge-form').style.display = 'none';
+        }
+
+        function submitRecharge() {
+            var money = document.getElementById('money').value;
+
+            $.ajax({
+                url: '/user/center/?option=recharge',
+                method: 'POST',
+                data: {
+                    'money': money,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('充值成功');
+                        $('#money').val('');
+                        closeRechargeForm();
+                        window.location.href = '/user/center/';
+                    } else {
+                        $('#money').val('');
+                        $('#money').addClass('short-password').attr('placeholder', response.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error: " + error);
+                }
+            });
+        }
+    </script>
+{% endblock %}

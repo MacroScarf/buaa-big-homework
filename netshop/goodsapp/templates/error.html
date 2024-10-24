@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商品不存在</title>
+<style>
+  /* 可选样式，用于美化弹窗 */
+  .alert-box {
+    padding: 20px;
+    background-color: #f44336; /* 红色背景 */
+    color: white; /* 白色文本 */
+    margin-bottom: 15px;
+    border-radius: 5px;
+  }
+</style>
+</head>
+<body onload="showAlert()">
+
+<h1>商品页面</h1>
+
+<!-- 弹窗内容将在这里显示 -->
+<div id="alertBox" class="alert-box" style="display: none;">商品不存在！</div>
+
+<script>
+function showAlert() {
+  // 获取弹窗元素
+  var alertBox = document.getElementById('alertBox');
+
+  // 显示弹窗
+  alertBox.style.display = 'block';
+
+  // 如果你想要弹窗在一段时间后自动消失，可以添加以下代码
+  // setTimeout(function() {
+  //   alertBox.style.display = 'none';
+  // }, 3000); // 3秒后消失
+}
+</script>
+
+</body>
+</html>

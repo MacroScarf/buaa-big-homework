@@ -1,0 +1,143 @@
+<link rel="stylesheet" href="/static/css/usedGoods.css">
+<link rel="stylesheet" href="/static/css/myCollect.css">
+<link rel="stylesheet" href="/static/css/address.css">
+<h2 class="center-title">我的二手物品</h2>
+
+<div class="usedGoodsInformation">
+    {% for usedGoods in usedGoodsList %}
+        <div class="good" data-id="{{ usedGoods.id }}">
+            <a href="/goods/usedgoodsdetail/{{ usedGoods.id }}">
+                <img src="{{ usedGoods.getColorImg }}" alt="">
+                {% if usedGoods.ifdelete %}
+                    <div class="name">{{ usedGoods.gname }} </div>
+                    <div class="name" style="color: red; font-weight: bold;">已经下架！</div>
+                {% else %}
+                    <div class="name">{{ usedGoods.gname }}</div>
+                {% endif %}
+                <div class="price">
+                    <i>￥</i>
+                    <p> {{ usedGoods.price }} </p>
+                </div>
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+<button class="add-address-button" onclick="showUsedGoodsForm()">上架二手物品</button>
+
+<div id="add-usedgoods-form" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeUsedGoodsForm()">&times;</span>
+        <h2 style="margin-bottom: 20px;">上架二手物品</h2>
+        <form id="new-usedgoods-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="ugname">商品名称：</label>
+                <input type="text" id="ugname" name="ugname" required value="" placeholder="请输入二手商品名称">
+            </div>
+            <div class="form-group">
+                <label for="ugdesc">商品详情描述：</label>
+                <input type="text" id="ugdesc" name="ugdesc" required value="" placeholder="请输入二手商品详情描述，包括商品型号、款式等必要信息">
+            </div>
+            <div class="form-group">
+                <label for="ugprice">商品价格：</label>
+                <input type="number" id="ugprice" name="ugprice" required value="" placeholder="请输入二手商品价格">
+            </div>
+            <div class="form-group">
+                <label for="ugimg">商品详情图1（预览图）：</label>
+                <input type="file" id="ugimg" name="ugimg" accept="image/*" required value="">
+            </div>
+            <div class="form-group">
+                <label for="ugdetail">商品详情图2：</label>
+                <input type="file" id="ugdetail" name="ugdetail" accept="image/*" required value="">
+            </div>
+
+            <button type="button" onclick="submitNewUsedGoods(event)">提交</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showUsedGoodsForm() {
+        document.getElementById('add-usedgoods-form').style.display = 'block';
+        $('#new-usedgoods-form input[type="text"]').val('');
+        $('#new-usedgoods-form input[type="number"]').val('');
+    }
+
+    function closeUsedGoodsForm () {
+        document.getElementById('add-usedgoods-form').style.display = 'none';
+    }
+
+    var formData = new FormData();
+
+    document.getElementById('ugimg').onchange = function () {
+        var ugimg = document.getElementById('ugimg');
+        var img = ugimg.files[0];
+        formData.append('ugimg', img);
+    }
+
+    document.getElementById('ugdetail').onchange = function () {
+        var ugdetail = document.getElementById('ugdetail');
+        var detail = ugdetail.files[0];
+        formData.append('ugdetail', detail);
+    }
+
+    function clearErrorMessages() {
+        $('#ugname').removeClass('short-password').attr('placeholder', '请输入二手商品名称');
+        $('#ugdesc').removeClass('short-password').attr('placeholder', '请输入二手商品详情描述，包括商品型号、款式等必要信息');
+        $('#ugprice').removeClass('short-password').attr('placeholder', '请输入二手商品价格');
+    }
+
+    function submitNewUsedGoods (event) {
+        event.preventDefault(); // 阻止表单的默认提交行为
+
+        clearErrorMessages();  // 清除之前的错误信息
+
+        if (!formData.has('ugimg') || !formData.has('ugdetail')) {
+            alert('您没有上传商品详情图');
+            return;
+        }
+
+        var ugname = document.getElementById('ugname').value;
+        var ugdesc = document.getElementById('ugdesc').value;
+        var ugprice = document.getElementById('ugprice').value;
+
+        formData.append('ugname', ugname);
+        formData.append('ugdesc', ugdesc);
+        formData.append('ugprice', ugprice);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        formData.append('action','addusedgood')
+        $.ajax ({
+            url: '/user/center/?option=usedGoods',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    alert('上传二手物品成功');
+                    $('#ugname').val('');
+                    $('#ugdesc').val('');
+                    $('#ugprice').val('');
+                    window.location.href = '/user/center/';
+                } else {
+                    if (response.error === '商品名称过长' || response.error === '商品名称重合' ) {
+                        $('#ugname').val('');
+                        $('#ugname').addClass('short-password').attr('placeholder', response.error);
+                    } else if (response.error === '商品详情描述过长') {
+                        $('#ugdesc').val('');
+                        $('#ugdesc').addClass('short-password').attr('placeholder', response.error);
+                    } else if (response.error === '商品价格不合法') {
+                        $('#ugprice').val('');
+                        $('#ugprice').addClass('short-password').attr('placeholder', response.error);
+                    } else {
+                        alert('上传失败' + response.error);
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error: " + error);
+            }
+        })
+    }
+</script>

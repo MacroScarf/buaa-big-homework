@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+
+{% block title %}商品详情页面{% endblock %}
+{% block headerjs %}
+    <link rel="stylesheet" href="/static/css/detail.css">
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/detail/displayComment.css">
+    <link rel="stylesheet" href="/static/css/detail/displayDetail.css">
+{% endblock %}
+
+{% block main %}
+    <!-- 返回顶部按钮 -->
+    <div class="fixed-bar">
+        <a id="back-to-top" href="#">
+            <img src="/static/images/icon/backtop_icon.png" height="30px" width="30px">
+            <span>回顶部</span>
+        </a>
+    </div>
+
+    <!--搜索框-->
+    <div class="top">
+        <div class="Logo">
+            <a href="/goods/">
+                <img src="/static/images/logo.png" height="120px" width="120px" alt="淘多多Logo">
+            </a>
+        </div>
+
+        <div class="gap" style="width: 20px;"></div>
+
+        <div class="search-container">
+            <form id="search-form" action="/goods/search/" method="GET">
+                <div class="select-container">
+                    <select id="search-type" name="type">
+                        <option value="goods">宝贝</option>
+                        <option value="shops">店铺</option>
+                    </select>
+                </div>
+                <input type="text" name="searchContent" class="search-input" placeholder="请输入搜索内容">
+                <button type="submit" class="search-button">搜索</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 面包屑 -->
+    <div class="bread">
+        <ul class="bread-content">
+            <li class="bread-item">
+                <a href="/goods/">首页</a>&gt;
+            </li>
+            <li class="bread-item">
+                <a href="/goods/category/{{ goods.category_id }}">{{ goods.category.cname }}</a>&gt;
+            </li>
+            <li class="bread-item">
+                <a href="javascript:void(0);">{{ goods.gname }}</a>
+            </li>
+        </ul>
+    </div>
+    <!--商店--->
+    <div class="shop-container">
+        {% load good_filters %}
+        <div class="shop-left">
+            <img src="{{ shop.getLogoImage }}" class="shop-logo">
+            <div class="shop-name">{{ shop.sname }}</div>
+            <div class="shop-rating">评分：{{ shop.rating }} 分</div>
+            <div class="shop-fans">粉丝数：{{ shop.fan_num|format_num }} 人</div>
+        </div>
+        <div class="enter-shop">
+            <img src="/static/images/icon/enter_shop.png" width="20px" height="20px" style="margin-right: 5px">
+            进入商店
+        </div>
+    </div>
+    <!-- 内容详情的主体 -->
+    <div class="detail-body">
+        <div class="detail-content">
+            <!-- 上半部分 -->
+            <div class="detail-con">
+                <div class="detail-con-left">
+                    <img id="rightimg" src="{{ goods.getColorImg }}">
+                </div>
+                <div class="detail-con-right">
+                    {% load good_filters %}
+                    <h3>{{ goods.gdesc }}</h3>
+                    <div class="sales-volume">已售：{{ goods.getSalesVolume|format_num }}</div>
+                    <div class="price">
+                        <i>￥</i>
+                        <p>{{ goods.price }}</p>
+                        {% if goods.price < goods.oldprice %}
+                            <s>￥ {{ goods.oldprice }}</s>
+                        {% endif %}
+                    </div>
+                    <div class="line"></div>
+
+                    <div class="color">
+                        <p class="p-item">款式：</p>
+                        <ul class="MinImgList">
+                            {% for color in goods.getColors %}
+                                <li class="MinImg  {% if forloop.first %}active{% endif %}" colorid="{{ color.id }}">
+                                    <img src="{{ color.colorurl }}" width="30px" height="30px">
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="size">
+                        <p class="p-item">规格：</p>
+                        <ul class="size-list">
+                            {% for size in goods.getSizes %}
+                                <li sizeid="{{ size.id }}"
+                                    class="size-item  {% if forloop.first %}active{% endif %}">{{ size.sname }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="num">
+                        <p class="p-item">数量：</p>
+                        <div class="sub">-</div>
+                        <input type="number" name="" value="1" min="1" max="20">
+                        <div class="add">+</div>
+                        <div id="ifHave"></div>
+                    </div>
+
+
+                {%  if userid != shop.user.id %}
+                    <div class="action-buttons">
+                        {% if goods.isdelete == False %}
+                                <button class="buy" onclick="buy();">立即购买</button>
+                                <button class="addCart" onclick="addCart();">加入购物车</button>
+                            {% if ifcollect == 0 %}
+                                <button class="collect" onclick="collect();">收藏</button>
+                            {% else %}
+                                <button class="collect" onclick="cancelcollect();">取消收藏</button>
+                            {% endif %}
+                        {% else %}
+                            <button class="deleted" style="cursor: default">商品已下架</button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+
+
+
+                </div>
+            </div>
+            <!-- 导航栏-->
+            {% if goods.isdelete == False %}
+                <!--没下架才能看-->
+                <div class="detail-con-nav">
+                    <ul class="detail-nav">
+                        <li id="good-details" class="active nav-item ">商品详情</li>
+                        <li id="good-comments" class="nav-item ">宝贝评价</li>
+                    </ul>
+                </div>
+                <!--下半部分，详细展示-->
+                <div class="display">
+                    {% for gdname,gdurlList in goods.getDetailInfo.items %}
+                        <div class="display-model">
+                            <div class="title">
+                                <p>{{ gdname }}</p>
+                                <div class="line"></div>
+                            </div>
+                            {% for gdurl in gdurlList %}
+                                <img src="{{ gdurl }}" alt="">
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 猜你喜欢部分 -->
+        <div class="goods-model">
+            <div class="title">
+                <p>猜你喜欢</p>
+                <div class="line"></div>
+            </div>
+            <div class="goods-content">
+                {% for recommend in recommend_list %}
+                    <div class="good">
+                        <a href="/goods/goodsdetails/{{ recommend.id }}">
+                            <img src="{{ recommend.getColorImg }}" class="good-img" alt="">
+                            <p class="detail-name" style="margin: 10px 0">{{ recommend.gname }}</p>
+                            <div class="price">
+                                <i style="display: inline;">￥</i>
+                                <p class="big" style="display: inline-block;">{{ recommend.price }}</p>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div id="addr" data-item="{{ addrList }}"></div>
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+        // 页面加载时执行
+        $(document).ready(function () {
+            judgeNum(1);
+        });
+
+        // 获取 CSRF token 的函数
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        // 进入商店
+        $('.enter-shop, .shop-logo, .shop-name').click(function () {
+            window.location.href = '/shop/' + {{ shop.id }} + '/shopdetail/'
+        });
+
+        // 选择商品颜色数量等点击事件
+        $('.MinImg').click(function () {
+            $('.MinImg').removeClass('active')
+            $(this).addClass('active')
+            $('#rightimg').attr('src', $(this).children('img').attr('src'))
+            const num_text_view = $('.num').children('input[type="number"]')
+            const val = $(num_text_view).val()
+            judgeNum(val)
+        });
+        $('.size-item').click(function () {
+            $('.size-item').removeClass('active')
+            $(this).addClass('active')
+            const num_text_view = $('.num').children('input[type="number"]')
+            const val = $(num_text_view).val()
+            judgeNum(val)
+        });
+        $('.sub').click(function () {
+            const num_text_view = $('.num').children('input[type="number"]')
+            const val = $(num_text_view).val()
+            if (val <= 1) return
+            //判断是否有货
+            judgeNum(val - 1).then(res => {
+                if (res) {
+                    $(num_text_view).val(val - 1);
+                }
+            }).catch(error => {
+                console.error('发生错误:', error);
+            });
+        });
+        $('.add').click(function () {
+            let num_text_view = $('.num').children('input[type="number"]');
+            let val = eval($(num_text_view).val());
+            if (val >= 20) return;
+
+            judgeNum(val + 1).then(res => {
+                if (res) {
+                    $(num_text_view).val(val + 1);
+                }
+            }).catch(error => {
+                console.error('发生错误:', error);
+            });
+        });
+
+        // 判断是否有货
+        function judgeNum(count) {
+            // 获取用户选择的颜色，尺寸，数量信息
+            const colorId = $('.MinImg.active').attr('colorid');
+            const sizeId = $('.size-item.active').attr('sizeid');
+            const goodsId = {{ goods.id }};
+
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: '/cart/',
+                    type: 'POST',
+                    data: {
+                        'colorid': colorId,
+                        'sizeid': sizeId,
+                        'count': count,
+                        'goodsid': goodsId,
+                        'flag': 'judge',
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#ifHave').text('有货');
+                            resolve(true);
+                        } else {
+                            $('#ifHave').text('缺货');
+                            resolve(false);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('操作失败，请重试。');
+                        reject(new Error('操作失败，请重试。'));
+                    }
+                });
+            });
+        }
+
+        //加入购物车
+        function addCart() {
+            if ('{{ user.uname }}' === '') {
+                alert('请先登录');
+                window.location.href = '/user/login/';
+                return;
+            }
+            //获取用户选择的颜色，尺寸，数量信息
+            const colorId = $('.MinImg.active').attr('colorid');
+            const sizeId = $('.size-item.active').attr('sizeid');
+            const count = $('.num').children('input[type="number"]').val();
+            const goodsId = {{ goods.id }};
+            //发送 AJAX 请求
+            $.ajax({
+                url: '/cart/',
+                type: 'POST',
+                data: {
+                    'colorid': colorId,
+                    'sizeid': sizeId,
+                    'count': count,
+                    'goodsid': goodsId,
+                    'flag': 'add',
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('商品已加入购物车');
+                    } else {
+                        alert('添加购物车失败');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('添加购物车失败，请重试。');
+                }
+            });
+        }
+
+        //购买
+        function buy() {
+            if ('{{ user.uname }}' === '') {
+                alert('请先登录');
+                window.location.href = '/user/login/';
+                return;
+            }
+            var addr = document.getElementById('addr').dataset.item;
+            if (addr === '<QuerySet []>') {
+                alert('您没有添加收货地址，点击跳转到用户中心');
+                window.location.href = '/user/center/';
+                return;
+            }
+
+            //获取用户选择的颜色，尺寸，数量信息
+            const colorId = $('.MinImg.active').attr('colorid');
+            const sizeId = $('.size-item.active').attr('sizeid');
+            const count = $('.num').children('input[type="number"]').val();
+            const goodsId = {{ goods.id }};
+            const data = {
+                'goodsid': goodsId,
+                'sizeid': sizeId,
+                'colorid': colorId,
+                'count': count,
+            };
+            window.location.href = `/order/?option=single&cartitems=` + JSON.stringify(data);
+        }
+
+        function collect() {
+            if ('{{ user.uname }}' === '') {
+                alert('请先登录');
+                window.location.href = '/user/login/';
+                return;
+            }
+            const goodsId = {{ goods.id }};
+            const url = `/goods/goodsdetails/${goodsId}/`;
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: {
+                    'action': 'collectgood',
+                },
+                success: function (response) {
+                    if (response.status === 'success') {
+                        alert(response.message);  // 弹出收藏成功的消息
+                        location.reload();
+                    } else if (response.status === 'failure') {
+                        alert(response.message);  // 弹出收藏失败的消息
+                        location.reload();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('请求失败: ' + error);
+                }
+            });
+        }
+
+        function cancelcollect() {
+            if ('{{ user.uname }}' === '') {
+                alert('请先登录');
+                window.location.href = '/user/login/';
+                return;
+            }
+            const goodsId = {{ goods.id }};
+            const url = `/goods/goodsdetails/${goodsId}/`;
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: {
+                    'action': 'cancelcollectgood',
+                },
+                success: function (response) {
+                    if (response.status === 'success') {
+                        alert(response.message);  // 弹出收藏成功的消息
+                        location.reload();
+                    } else if (response.status === 'failure') {
+                        alert(response.message);  // 弹出收藏失败的消息
+                        location.reload();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('请求失败: ' + error);
+                }
+            });
+        }
+
+        // 选择商品详情或者商品评价
+        $('.nav-item').click(function () {
+            if ($(this).hasClass('active')) {
+                return;
+            }
+            $('.nav-item').removeClass('active');
+            $(this).addClass('active');
+
+            const itemid = $(this).attr('id');
+            console.log(itemid);
+
+            const goodsId = {{ goods.id }}
+
+            if (itemid == 'good-details') {
+                // 点击商品详细
+                send('details', goodsId);
+            } else if (itemid == 'good-comments') {
+                // 点击商品评价
+                send('comments', goodsId);
+            }
+        });
+
+
+        function send(type, goodsId) {
+            $.ajax({
+                url: '/goods/goodsdetails/' + goodsId + '/',
+                method: 'POST',
+                data: {
+                    'type': type
+                },
+                success: function (response) {
+                    // 将响应的 HTML 插入 .display 部分
+                    $('.display').html(response);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        }
+    </script>
+
+
+{% endblock %}

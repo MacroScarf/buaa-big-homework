@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block title %}二手商品详情页面{% endblock %}
+
+{% block headerjs %}
+    <link rel="stylesheet" href="/static/css/detail.css">
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/detail/displayComment.css">
+    <link rel="stylesheet" href="/static/css/detail/displayDetail.css">
+    <link rel="stylesheet" href="/static/css/center.css">
+
+{% endblock %}
+
+{% block main %}
+
+    <!--搜索框-->
+    <div class="top">
+        <div class="Logo">
+            <a href="/goods/">
+                <img src="/static/images/logo.png" height="120px" width="120px" alt="淘多多Logo">
+            </a>
+        </div>
+
+        <div class="gap" style="width: 20px;"></div>
+
+        <div class="search-container">
+            <form id="search-form" action="/goods/search/" method="GET">
+                <div class="select-container">
+                    <select id="search-type" name="type">
+                        <option value="goods">宝贝</option>
+                        <option value="shops">店铺</option>
+                    </select>
+                </div>
+                <input type="text" name="searchContent" class="search-input" placeholder="请输入搜索内容">
+                <button type="submit" class="search-button">搜索</button>
+            </form>
+        </div>
+    </div>
+    <!--面包屑-->
+    <div class="bread">
+        <ul class="bread-content">
+            <li class="bread-item">
+                <a href="/goods/">首页</a>&gt;
+            </li>
+            <li class="bread-item">
+                <a href="/goods/category/{{ usedgood.category_id }}">{{ usedgood.category.cname }}</a>&gt;
+            </li>
+            <li class="bread-item">
+                <a href="javascript:void(0);" style="">{{ usedgood.gname }}</a>
+            </li>
+        </ul>
+    </div>
+    <!--物品主人-->
+    <div class="shop-container">
+        <div class="shop-left">
+            <img src="/static/images/avatar.jpg" class="shop-logo" style="cursor: default">
+            <div class="shop-name" style="cursor: default">{{ good_hoster.uname }}</div>
+        </div>
+    </div>
+
+    <div class="detail-body">
+        <div class="detail-content">
+            <!-- 上半部分 -->
+            <div class="detail-con">
+                <div class="detail-con-left">
+                    <img id="rightimg" src="{{ usedgood.getColorImg }}">
+
+                </div>
+                <div class="detail-con-right">
+                    <h3>{{ usedgood.gname }}</h3>
+                    <div class="sales-volume" style="max-width: 650px;min-height: 100px; color: black">{{ usedgood.gdesc }}</div>
+                    <div class="price">
+                        <i>￥</i>
+                        <p>{{ usedgood.price }}</p>
+                    </div>
+                    <div class="line"></div>
+                    <div class="action-buttons" id="action-buttons" data-ugid="{{ usedgood.id }}">
+                        {% if usedgood.isdelete == False %}
+                            {% if good_hoster.id != userid %}
+                                <button class="buy" style="border-radius: 34px" onclick="buy();">立即购买</button>
+                            {% else  %}
+                                <button class="buy"  onclick="showUsedGoodsForm();" >修改信息</button>
+                                <button class="addCart"  onclick="deleteUsedGoods();" >下架商品</button>
+                            {% endif %}
+                        {% else %}
+                            {% if good_hoster.id != userid %}
+                                <button class="buy" style="border-radius: 34px">已经下架</button>
+                            {% else  %}
+                                <button class="buy" style="border-radius: 34px" onclick="upUsedGoods();">重新上架</button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+             <div class="detail-con-nav">
+                <ul class="detail-nav">
+                    <li id="good-details" class="active nav-item ">商品详情</li>
+                </ul>
+            </div>
+            <div class="display">
+                <div class="display-model">
+                    <img src="{{ usedgood.getColorImg }}" alt="">
+                    <img src="{{ usedgood.getDetailImg }}" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="addr" data-item="{{ addrList }}"></div>
+
+    <div id="add-usedgoods-form" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUsedGoodsForm()">&times;</span>
+            <h2 style="margin-bottom: 20px;">修改二手物品</h2>
+            <form id="new-usedgoods-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="ugname">商品名称：</label>
+                    <input type="text" id="ugname" name="ugname" required value="" placeholder="请输入二手商品名称">
+                </div>
+                <div class="form-group">
+                    <label for="ugdesc">商品详情描述：</label>
+                    <input type="text" id="ugdesc" name="ugdesc" required value="" placeholder="请输入二手商品详情描述，包括商品型号、款式等必要信息">
+                </div>
+                <div class="form-group">
+                    <label for="ugprice">商品价格：</label>
+                    <input type="number" id="ugprice" name="ugprice" required value="" placeholder="请输入二手商品价格">
+                </div>
+                <div class="form-group">
+                    <label for="ugimg">商品详情图1（预览图）：</label>
+                    <input type="file" id="ugimg" name="ugimg" accept="image/*" required value="">
+                </div>
+                <div class="form-group">
+                    <label for="ugdetail">商品详情图2：</label>
+                    <input type="file" id="ugdetail" name="ugdetail" accept="image/*" required value="">
+                </div>
+
+                <button type="button" onclick="submitNewUsedGoods(event)">提交</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+        function upUsedGoods() {
+            var formData2 = new FormData();
+            var ugid = $('#action-buttons').data('ugid');
+            formData2.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            formData2.append('ugid',ugid)
+            formData2.append('action','upusedgood')
+            $.ajax ({
+                url: '/user/center/?option=usedGoods',
+                method: 'POST',
+                data: formData2,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        alert('重新上架二手物品成功');
+                        location.reload();
+                    } else {
+                       alert(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error: " + error);
+                }
+            })
+        }
+
+        function deleteUsedGoods(){
+            var formData1 = new FormData();
+            var ugid = $('#action-buttons').data('ugid');
+
+            formData1.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            formData1.append('ugid',ugid)
+            formData1.append('action','deleteusedgood')
+            $.ajax ({
+                url: '/user/center/?option=usedGoods',
+                method: 'POST',
+                data: formData1,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        alert('下架二手物品成功');
+                        location.reload();
+                    } else {
+                       alert(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error: " + error);
+                }
+            })
+        }
+
+        function buy() {
+            if ('{{ user.uname }}' === '') {
+                alert('请先登录');
+                window.location.href = '/user/login/';
+                return;
+            }
+            var addr = document.getElementById('addr').dataset.item;
+            if (addr === '<QuerySet []>') {
+                alert('您没有添加收货地址，点击跳转到用户中心');
+                window.location.href = '/user/center/';
+                return;
+            }
+
+            const goodsid = {{ usedgood.id }};
+            const sizeid = 0;
+            const colorid = 0;
+            const count = 1;
+
+            var data = {
+                'goodsid': goodsid,
+                'colorid': colorid,
+                'sizeid': sizeid,
+                'count': count,
+            };
+            window.location.href = `/order/?option=single&cartitems=` + JSON.stringify(data);
+        }
+
+        function showUsedGoodsForm()
+        {
+            document.getElementById('add-usedgoods-form').style.display = 'block';
+            $('#new-usedgoods-form input[type="text"]').val('');
+            $('#new-usedgoods-form input[type="number"]').val('');
+        }
+
+        function closeUsedGoodsForm () {
+            document.getElementById('add-usedgoods-form').style.display = 'none';
+        }
+
+        var formData = new FormData();
+
+        document.getElementById('ugimg').onchange = function () {
+            var ugimg = document.getElementById('ugimg');
+            var img = ugimg.files[0];
+            formData.append('ugimg', img);
+        }
+
+        document.getElementById('ugdetail').onchange = function () {
+            var ugdetail = document.getElementById('ugdetail');
+            var detail = ugdetail.files[0];
+            formData.append('ugdetail', detail);
+        }
+
+        function clearErrorMessages() {
+            $('#ugname').removeClass('short-password').attr('placeholder', '请输入二手商品名称');
+            $('#ugdesc').removeClass('short-password').attr('placeholder', '请输入二手商品详情描述，包括商品型号、款式等必要信息');
+            $('#ugprice').removeClass('short-password').attr('placeholder', '请输入二手商品价格');
+        }
+
+        function submitNewUsedGoods (event) {
+            event.preventDefault(); // 阻止表单的默认提交行为
+
+            clearErrorMessages();  // 清除之前的错误信息
+
+            if (!formData.has('ugimg') || !formData.has('ugdetail')) {
+                alert('您没有上传商品详情图');
+                return;
+            }
+
+            var ugname = document.getElementById('ugname').value;
+            var ugdesc = document.getElementById('ugdesc').value;
+            var ugprice = document.getElementById('ugprice').value;
+            var ugid = $('#action-buttons').data('ugid');
+
+            formData.append('ugname', ugname);
+            formData.append('ugdesc', ugdesc);
+            formData.append('ugprice', ugprice);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            formData.append('action','modifyusedgood')
+            formData.append('ugid',ugid);
+
+            $.ajax ({
+                url: '/user/center/?option=usedGoods',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        alert('修改二手物品成功');
+                        $('#ugname').val('');
+                        $('#ugdesc').val('');
+                        $('#ugprice').val('');
+                        location.reload();
+                    } else {
+                        if (response.error === '商品名称过长' || response.error === '商品名称重合' ) {
+                            $('#ugname').val('');
+                            $('#ugname').addClass('short-password').attr('placeholder', response.error);
+                        } else if (response.error === '商品详情描述过长') {
+                            $('#ugdesc').val('');
+                            $('#ugdesc').addClass('short-password').attr('placeholder', response.error);
+                        } else if (response.error === '商品价格不合法') {
+                            $('#ugprice').val('');
+                            $('#ugprice').addClass('short-password').attr('placeholder', response.error);
+                        } else {
+                            alert('上传失败' + response.error);
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error: " + error);
+                }
+            })
+        }
+</script>
+
+{% endblock %}

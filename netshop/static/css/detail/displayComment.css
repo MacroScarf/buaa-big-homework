@@ -1,0 +1,142 @@
+.commentList{
+    max-height: 950px;
+    overflow-y: auto;
+}
+.comment-container {
+    width: 100%;
+    padding: 5px 30px;
+}
+
+.userinfo {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/*info*/
+#username {
+    font-size: 17px;
+    font-weight: bold;
+    margin: 5px 7px;
+}
+
+#date {
+    font-size: 14px;
+    color: #7a7a7a;
+    margin: 3px 7px;
+}
+
+/*rating*/
+.rating {
+    padding: 20px 0 0 0;
+    margin-left: 20px;
+}
+
+.rating ul, .rating .score {
+    float: left;
+    font-size: 17px;
+    margin-left: 3px;
+    cursor: default;
+}
+
+.rating li {
+    float: left;
+    list-style: none;
+    margin: 0 3px;
+}
+
+.rating li.star-light {
+    color: #fd6b00;
+}
+
+.rating li.star-unlight {
+    color: #ccc;
+}
+
+/*content*/
+.comment-content {
+    background: whitesmoke;
+    border-radius: 30px;
+    width: 100%;
+    height: 100px;
+    margin: 10px 0;
+    padding: 20px 15px 20px 15px;
+}
+
+.comment-container .line {
+    width: 90%;
+    margin: 30px auto;
+    /*height: 1px;*/
+    border-bottom: 1px solid #f1efef;
+}
+
+/*mycontent*/
+.clear {
+    /*用于清除浮动*/
+    clear: both;
+}
+
+.mycomment {
+    width: 100%;
+    padding: 5px 30px;
+}
+
+.mycomment form {
+    width: 100%;
+    position: relative;
+}
+
+.myrating ul, .myrating .score {
+    float: left;
+    font-size: 18px;
+    margin-left: 3px;
+    cursor: default;
+}
+
+.mycomment ul li {
+    float: left;
+    list-style: none;
+    margin: 0 3px;
+    cursor: pointer;
+}
+
+.mycomment ul li.star-unlight {
+    color: #ccc;
+}
+
+.mycomment ul li.star-light {
+    color: #fd6b00;
+}
+
+.text {
+    margin: 20px 0;
+}
+
+.text div {
+    float: left;
+    font-size: 18px;
+    margin-left: 3px;
+    cursor: default;
+}
+
+#content {
+    resize: none;
+    font-size: 15px;
+    width: 90%;
+    height: 100px;
+    margin: 5px 5px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.mycomment button {
+    background: #fd6b00;
+    width: 50px;
+    height: 25px;
+    border: none;
+    color: white;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    cursor: pointer;
+}

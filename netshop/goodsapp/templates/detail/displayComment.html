@@ -1,0 +1,143 @@
+<!--主要用来写商品详细的评价部分-->
+<div class="commentList">
+    {% for comment in comments %}
+        <div class="comment-container">
+            <div class="userinfo">
+                <img src="/static/images/icon/comment_user.png" width="40px" height="40px">
+                <div class="info">
+                    {% load good_filters %}
+                    <div id="username">{{ comment.getUname|mask_username }}</div>
+                    <div id="date">{{ comment.date|chinese_date }}</div>
+                </div>
+                <div class="rating">
+                    <div class="score">评分:</div>
+                    <ul>
+                        {% for i in comment.rating|star_range %}
+                            <li class="star-light">&#9733;</li>
+                        {% endfor %}
+                        {% for i in comment.rating|unstar_range %}
+                            <li class="star-unlight">&#9733;</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="comment-content">
+                {{ comment.content }}
+            </div>
+            <div class="line"></div>
+        </div>
+    {% endfor %}
+</div>
+{% if isbuy %}
+    <div class="mycomment">
+        <form>
+            {% csrf_token %}
+            <div class="myrating">
+                <div class="score">评分:</div>
+                <ul class="stars">
+                    <li class="star-unlight" id="star0">&#9733;</li>
+                    <li class="star-unlight" id="star1">&#9733;</li>
+                    <li class="star-unlight" id="star2">&#9733;</li>
+                    <li class="star-unlight" id="star3">&#9733;</li>
+                    <li class="star-unlight" id="star4">&#9733;</li>
+                    <input type="hidden" id="rating-value">
+                </ul>
+            </div>
+            <div class="clear"></div> <!-- 新增的用于清除浮动的元素 -->
+            <div class="text">
+                <div>评价:</div>
+                <textarea id="content" name="content" required placeholder="请填写您的评价，最多100字"
+                          maxlength="100"></textarea>
+            </div>
+            <button type="submit" id="submit-comment">提交</button>
+        </form>
+    </div>
+{% endif %}
+
+
+<script>
+
+    $(document).ready(function () {
+        let ratedIndex = -1; // 记录当前评分的星星数量
+
+        // 鼠标移入时高亮星星
+        $('.myrating ul li').mouseover(function () {
+            let currentIndex = $(this).index();
+            highlightStars(currentIndex);
+        });
+
+        // 鼠标移出时移除高亮，但保留已评分的高亮星星
+        $('.myrating ul li').mouseout(function () {
+            if (ratedIndex === -1) {
+                unhighlightStars();
+            } else {
+                highlightStars(ratedIndex);
+            }
+        });
+
+        // 点击星星时记录评分，并保持高亮
+        $('.myrating ul li').click(function () {
+            ratedIndex = $(this).index();
+            highlightStars(ratedIndex);
+            $('#rating-value').val(ratedIndex + 1);
+            //console.log($('#rating-value').attr('value'))
+        });
+
+        // 高亮星星函数
+        function highlightStars(index) {
+            $('.myrating ul li').each(function (i) {
+                if (i <= index) {
+                    $(this).removeClass('star-unlight').addClass('star-light');
+                } else {
+                    $(this).removeClass('star-light').addClass('star-unlight');
+                }
+            });
+        }
+
+        // 移除高亮星星函数
+        function unhighlightStars() {
+            $('.myrating ul li').each(function () {
+                $(this).removeClass('star-light').addClass('star-unlight');
+            });
+        }
+
+        // 提交表单
+        $('#submit-comment').click(function (event) {
+            event.preventDefault(); // 阻止表单默认提交
+
+            const content = $('#content').val();
+            const rating = $('#rating-value').val();
+            console.log(rating)
+            const goodsId = window.location.pathname.split('/')[3];
+
+            if (rating == '' || rating <= 0) {
+                alert("请填写评分");
+                return;
+            }
+            if (content == '') {
+                alert("请填写评价");
+                return;
+            }
+            $.ajax({
+                url: '/goods/goodsdetails/' + goodsId + '/comment/',
+                type: 'POST',
+                data: {
+                    rating: rating,
+                    content: content,
+                    csrfmiddlewaretoken: csrftoken
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert("评论成功")
+                        window.location.href = '/goods/goodsdetails/' + goodsId + '/'
+                    } else {
+                        alert("评论失败")
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('评论提交失败，请稍后再试');
+                }
+            });
+        })
+    })
+</script>

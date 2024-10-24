@@ -1,0 +1,299 @@
+<link rel="stylesheet" href="/static/css/address.css">
+<h2 class="center-title">收货地址</h2>
+
+<div class="addressInformation">
+    {% for addObj in addressList %}
+        <div class="addObj" data-id="{{ addObj.id }}" onclick="setDefaultAddress(this)">
+            <div class="areaa">
+                <span class="addr-detail">收货人：</span>
+                <span class="user-detail">{{ addObj.aname }}</span>
+            </div>
+            <div class="areaa">
+                <span class="addr-detail">电话号码：</span>
+                <span class="user-detail">{{ addObj.aphone }}</span>
+            </div>
+            <div class="areaa">
+                <span class="addr-detail">收货地址：</span>
+                <span class="user-detail">{{ addObj.addr }}</span>
+            </div>
+
+            <div class="button-area">
+                <button class="modify-address-button" onclick="modifyAddressForm(event, {{ addObj.id }})">修改</button>
+                <span>|</span>
+                <button class="delete-address-button" onclick="deleteAddress(event, {{ addObj.id }})">删除</button>
+            </div>
+
+            {% if addObj.isdefault %}
+                <ins class="default-label">默认地址</ins>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<button class="add-address-button" onclick="showAddAddressForm()">添加新地址</button>
+
+<div id="add-address-form" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddAddressForm()">&times;</span>
+        <h2 style="margin-bottom: 20px;">添加新地址</h2>
+        <form id="new-address-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="aname">收货人:</label>
+                <input type="text" id="aname" name="aname" required value="" placeholder="长度不多于20字符">
+            </div>
+            <div class="form-group">
+                <label for="aphone">电话号码:</label>
+                <input type="text" id="aphone" name="aphone" required value="" placeholder="请输入电话号码">
+            </div>
+            <div class="form-group">
+                <label for="addr">收货地址:</label>
+                <input type="text" id="addr" name="addr" required value="" placeholder="长度不多于50字符">
+            </div>
+            <button type="button" onclick="submitNewAddress()">提交</button>
+        </form>
+    </div>
+</div>
+
+<div id="modify-address-form" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModifyAddressForm()">&times;</span>
+        <h2 style="margin-bottom: 20px;">修改地址</h2>
+        <form id="edit-address-form">
+            {% csrf_token %}
+            <input type="hidden" id="edit-address-id" name="id">
+            <div class="form-group">
+                <label for="edit-aname">收货人:</label>
+                <input type="text" id="edit-aname" name="aname" required value="" placeholder="长度不多于20字符">
+            </div>
+            <div class="form-group">
+                <label for="edit-aphone">电话号码:</label>
+                <input type="text" id="edit-aphone" name="aphone" required value="" placeholder="请输入电话号码">
+            </div>
+            <div class="form-group">
+                <label for="edit-addr">收货地址:</label>
+                <input type="text" id="edit-addr" name="addr" required value="" placeholder="长度不多于50字符">
+            </div>
+            <button type="button" onclick="submitEditAddress()">提交</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+            }
+        }
+    });
+
+    /**********************更改默认地址**********************/
+    function setDefaultAddress(element) {
+        const addressId = element.getAttribute('data-id');
+        $.ajax({
+            url: '/user/center/?option=address&action=setdefault',
+            method: 'POST',
+            data: {
+                'id': addressId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    // 移除所有默认标签
+                    document.querySelectorAll('.default-label').forEach(function (el) {
+                        el.remove();
+                    });
+
+                    // 给当前点击的元素添加默认标签
+                    var ins = document.createElement('ins');
+                    ins.className = 'default-label';
+                    ins.innerText = '默认地址';
+                    element.appendChild(ins);
+                } else {
+                    alert('设置默认地址失败: ' + response.error);
+                }
+            }
+        });
+    }
+
+    /**********************添加新地址**********************/
+    function showAddAddressForm() {
+        document.getElementById('add-address-form').style.display = 'block';
+        $('#new-address-form input[type="text"]').val('');
+    }
+
+    function closeAddAddressForm() {
+        document.getElementById('add-address-form').style.display = 'none';
+    }
+
+    function submitNewAddress() {
+        var form = $('#new-address-form');
+
+        $.ajax({
+            url: '/user/center/?option=address&action=add',
+            method: 'POST',
+            data: form.serialize(),
+            success: function (response) {
+                if (response.success) {
+                    closeAddAddressForm();
+                    var newAddress = {
+                        id: response.id,
+                        aname: form.find('#aname').val(),
+                        aphone: form.find('#aphone').val(),
+                        addr: form.find('#addr').val(),
+                        isdefault: response.isdefault,
+                    };
+                    addAddressToList(newAddress);
+                } else {
+                    if (response.error === '收货人姓名不能为空' || response.error === '收货人姓名过长') {
+                        $('#aname').val('');
+                        $('#aname').addClass('short-password').attr('placeholder', response.error);
+                    } else if (response.error === '电话号码不能为空' || response.error === '电话号码格式不合法') {
+                        $('#aphone').val('');
+                        $('#aphone').addClass('short-password').attr('placeholder', response.error);
+                    } else if (response.error === '收货地址不能为空' || response.error === '收货地址过长') {
+                        $('#addr').val('');
+                        $('#addr').addClass('short-password').attr('placeholder', response.error);
+                    } else if (response.error === '您的收货地址数量已经达到最大') {
+                        alert(response.error);
+                    } else {
+                        alert('添加地址失败' + response.error);
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error: " + error);
+            }
+        });
+    }
+
+    function addAddressToList(address) {
+        var addressHTML = `
+            <div class="addObj" data-id="${address.id}" onclick="setDefaultAddress(this)">
+                <div class="areaa">
+                    <span class="addr-detail">收货人：</span>
+                    <span class="user-detail">${address.aname}</span>
+                </div>
+                <div class="areaa">
+                    <span class="addr-detail">电话号码：</span>
+                    <span class="user-detail">${address.aphone}</span>
+                </div>
+                <div class="areaa">
+                    <span class="addr-detail">收货地址：</span>
+                    <span class="user-detail">${address.addr}</span>
+                </div>
+
+                <div class="button-area">
+                    <button class="modify-address-button" onclick="modifyAddressForm(event, ${address.id})">修改</button>
+                    <span class="addr-detail">|</span>
+                    <button class="delete-address-button" onclick="deleteAddress(event, ${address.id} )">删除</button>
+                </div>
+
+                ${address.isdefault ? '<ins class="default-label">默认地址</ins>' : ''}
+            </div>
+        `;
+        $('.addressInformation').append(addressHTML);
+    }
+
+    /**********************修改地址**********************/
+    function modifyAddressForm(event, id) {
+        event.stopPropagation();
+
+        showModifyAddressForm();
+
+        var addressDiv = document.querySelector(`.addObj[data-id='${id}']`);
+        var aname = addressDiv.querySelector('div:nth-child(1)').innerText.split('：')[1].trim();
+        var aphone = addressDiv.querySelector('div:nth-child(2)').innerText.split('：')[1].trim();
+        var addr = addressDiv.querySelector('div:nth-child(3)').innerText.split('：')[1].trim();
+
+        document.getElementById('edit-address-id').value = id;
+        document.getElementById('edit-aname').value = aname;
+        document.getElementById('edit-aphone').value = aphone;
+        document.getElementById('edit-addr').value = addr;
+    }
+
+    function showModifyAddressForm() {
+        document.getElementById('modify-address-form').style.display = 'block';
+    }
+
+    function closeModifyAddressForm() {
+        document.getElementById('modify-address-form').style.display = 'none';
+    }
+
+    function submitEditAddress() {
+        var form = $('#edit-address-form');
+
+        $.ajax({
+            url: '/user/center/?option=address&action=modify',
+            method: 'POST',
+            data: form.serialize(),
+            success: function (response) {
+                if (response.success) {
+                    updateAddressInList(response.address);
+                    closeModifyAddressForm();
+                } else {
+                    if (response.error === '收货人姓名不能为空' || response.error === '收货人姓名过长') {
+                        $('#edit-aname').val('');
+                        $('#edit-aname').addClass('short-password').attr('placeholder', response.error);
+                    } else if (response.error === '电话号码不能为空' || response.error === '电话号码格式不合法') {
+                        $('#edit-aphone').val('');
+                        $('#edit-aphone').addClass('short-password').attr('placeholder', response.error);
+                    } else if (response.error === '收货地址不能为空' || response.error === '收货地址过长') {
+                        $('#edit-addr').val('');
+                        $('#edit-addr').addClass('short-password').attr('placeholder', response.error);
+                    } else {
+                        alert('修改地址失败' + response.error);
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error: " + error);
+            }
+        });
+    }
+
+    function updateAddressInList(address) {
+        var addressDiv = document.querySelector(`.addObj[data-id='${address.id}']`);
+
+        var nameDiv = addressDiv.querySelector('div:nth-child(1)');
+        nameDiv.innerHTML = `<span class="addr-detail">收货人：</span><span class="user-detail">${address.aname}</span>`;
+
+        var phoneDiv = addressDiv.querySelector('div:nth-child(2)');
+        phoneDiv.innerHTML = `<span class="addr-detail">电话号码：</span><span class="user-detail">${address.aphone}</span>`;
+
+        var addrDiv = addressDiv.querySelector('div:nth-child(3)');
+        addrDiv.innerHTML = `<span class="addr-detail">收货地址：</span><span class="user-detail">${address.addr}</span>`;
+    }
+
+    /**********************删除地址**********************/
+    function deleteAddress(event, id) {
+        event.stopPropagation();
+        if (confirm('确定要删除这个地址吗？')) {
+            $.ajax({
+                url: '/user/center/?option=address&action=delete',
+                method: 'POST',
+                data: {
+                    'id': id,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        removeAddressFromList(id);
+                    } else {
+                        alert('删除地址失败: ' + response.error);
+                    }
+                }
+            });
+        }
+    }
+
+    function removeAddressFromList(id) {
+        var addressDiv = document.querySelector(`.addObj[data-id='${id}']`);
+        addressDiv.remove();
+    }
+</script>

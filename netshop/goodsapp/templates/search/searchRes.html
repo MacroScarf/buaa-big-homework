@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    搜索结果
+{% endblock %}
+
+{% block headerjs %}
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/searchResult/searchRes.css">
+    <link rel="stylesheet" href="/static/css/searchResult/result.css">
+{% endblock %}
+
+{% block main %}
+    <!-- 返回顶部按钮 -->
+    <div class="fixed-bar">
+        <a id="back-to-top" href="#">
+            <img src="/static/images/icon/backtop_icon.png" height="30px" width="30px">
+            <span>回顶部</span>
+        </a>
+    </div>
+    <!--搜索框-->
+    <div class="top">
+        <div class="Logo">
+            <a href="/goods/">
+                <img src="/static/images/logo.png" height="120px" width="120px" alt="淘多多Logo">
+            </a>
+        </div>
+
+        <div class="gap" style="width: 20px;"></div>
+
+        <div class="search-container">
+            <form id="search-form" action="/goods/search/" method="GET">
+                <div class="select-container">
+                    <select id="search-type" name="type">
+                        <option value="goods" {% if type == 'goods' %}selected{% endif %}>宝贝</option>
+                        <option value="shops" {% if type == 'shops' %}selected{% endif %}>店铺</option>
+                    </select>
+                    <input type="hidden" id="lastSearchType">
+                </div>
+                <input type="text" name="searchContent" class="search-input" placeholder="请输入搜索内容"
+                       value="{{ searchContent }}">
+                <button type="submit" class="search-button">搜索</button>
+            </form>
+        </div>
+    </div>
+    <!--搜索结果展示部分-->
+    <div id="body">
+        <div class="nav">
+            {% if type == 'goods' %}
+                <ul>
+                    <li id="compre" class="active">综合</li>
+                    <li id="sales">销量</li>
+                    <li id="rating">评分</li>
+                    <li id="price">价格▽
+                        <div class="sub-menu">
+                            <div class="sub-item" id="aec">从低到高</div>
+                            <div class="sub-item" id="desc">从高到低</div>
+                        </div>
+                    </li>
+                </ul>
+            {% elif type == 'shops' %}
+                <ul>
+                    <li id="compre" class="active">综合</li>
+                    <li id="sales">销量</li>
+                    <li id="rating">评分</li>
+                    <li id="fan-num">粉丝数</li>
+                </ul>
+            {% endif %}
+        </div>
+        <div class="line"></div>
+        <div class="container">
+            {% if type == 'goods' %}
+                {% load good_filters %}
+                {% if not results %}
+                    <div class="no-results">未搜索到相关商品</div>
+                {% endif %}
+                {% for good in results %}
+                    {% if good.isUsed == False %}
+                        <div class="good">
+                            <a href="/goods/goodsdetails/{{ good.id }}">
+                                <img src="{{ good.getColorImg }}">
+                                <div class="name">{{ good.gname }}</div>
+                                <div class="gdesc">{{ good.gdesc }}</div>
+                                <div class="sales-volume">已售 {{ good.getSalesVolume|format_num }}</div>
+                                <div class="price">￥{{ good.price }}</div>
+                                {% if good.isHot %}
+                                    <div class="hotLabel">HOT</div>
+                                {% endif %}
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="good">
+                            <a href="/goods/usedgoodsdetail/{{ good.id }}">
+                                <img src="{{ good.getColorImg }}">
+                                <div class="name">{{ good.gname }}</div>
+                                <div class="gdesc">{{ good.gdesc }}</div>
+                                <div class="price">￥{{ good.price }}</div>
+                                <div class="usedLabel">二手</div>
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% elif type == 'shops' %}
+                {% load good_filters %}
+                {% if not results %}
+                    <div class="no-results">未搜索到相关店铺</div>
+                {% endif %}
+                {% for shop in results %}
+                    <div class="shop">
+                        <div class="shop-card">
+                            <img class="shop-logo" shopid="{{ shop.id }}" src="{{ shop.getLogoImage }}"
+                                 style="cursor: pointer">
+                            <div class="name" shopid="{{ shop.id }}">{{ shop.sname }}</div>
+                            <div class="shopinfo">
+                                <img src="/static/images/icon/shop_more_icon.png" width="20px" height="20px">
+                                <div class="info-container">
+                                    <div class="shop-rating">评分：{{ shop.rating }} 分</div>
+                                    <div class="shop-fans">粉丝数：{{ shop.fan_num|format_num }} 人</div>
+                                    <div class="shop-sales">总销量：{{ shop.getTotalSalesVolume|format_num }} 件</div>
+                                </div>
+                            </div>
+                            {% if shop.getHotGoodsList %}
+                                <div class="goodList">
+                                    {% for good in shop.getHotGoodsList %}
+                                        <div class="good-item">
+                                            {% if  good.isHot %}
+                                                <div class="hot">Hot</div>
+                                            {% endif %}
+                                            <img src="{{ good.getColorImg }}" goodid={{ good.id }}>
+                                            <div class="price">￥{{ good.price }}</div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="goodList-else">商家目前还没上架商品</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+        // 获取 CSRF token 的函数
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        /***********处理点击事件***********/
+        $(document).on('click', '#compre,#rating,#sales,#fan-num', function () {
+            // 移除所有.nav ul li元素和.sub-item元素的活动样式
+            $('.nav ul li').removeClass('active');
+            $('.sub-item').removeClass('active-sub-item');
+            // 给当前被点击的 li 元素添加活动样式
+            $(this).addClass('active');
+
+            var sort = $(this).attr('id');
+            var searchType = $('#search-type').val();
+
+            sendChangeSort(sort, searchType);
+        });
+
+        $(document).on('click', '.sub-item', function () {
+            $('.nav ul li').removeClass('active');
+            $('.sub-item').removeClass('active-sub-item');
+
+            $('#price').addClass('active');
+            $(this).addClass('active-sub-item');
+
+            var sort = $(this).attr('id');
+            var searchType = $('#search-type').val();
+
+            sendChangeSort(sort, searchType);
+        });
+
+        //点击商店头像跳转到商店界面
+        $(document).on('click', '.shop-logo, .shop .name', function () {
+            shopid = $(this).attr('shopid')
+            window.location.href = '/shop/' + shopid + '/shopdetail/'
+        });
+
+        //点击商店栏的商品图片跳转到商品详细
+        $(document).on('click', '.good-item img', function () {
+            goodid = $(this).attr('goodid')
+            window.location.href = '/goods/goodsdetails/' + goodid + '/'
+        });
+
+        // 发送POST请求修改排序
+        function sendChangeSort(sort, searchType) {
+            const csrftoken = getCookie('csrftoken');
+            $.ajax({
+                url: '/goods/search/',
+                method: 'POST',
+                data: {
+                    'type': searchType,
+                    'sort': sort
+                },
+                beforeSend: function (xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                },
+                success: function (response) {
+                    // 将响应的 HTML 插入 .container 部分
+                    $('.container').html(response);
+                },
+                error: function (xhr, status, error) {
+                    console.error('搜索请求失败:', error);
+                }
+            });
+        }
+    </script>
+{% endblock %}

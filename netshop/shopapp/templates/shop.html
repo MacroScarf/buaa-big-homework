@@ -1,0 +1,1129 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    店铺详情页面
+{% endblock %}
+
+
+{% block headerjs %}
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/shop.css">
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/stock.js"></script>
+
+{% endblock %}
+
+{% block main %}
+    <!--回顶部-->
+    <div class="fixed-bar">
+        <a id="back-to-top" href="#">
+            <img src="/static/images/icon/backtop_icon.png" height="30px" width="30px">
+            <span>回顶部</span>
+        </a>
+    </div>
+    <!--搜索框-->
+    <div class="top">
+        <div class="Logo">
+            <a href="/goods/">
+                <img src="/static/images/logo.png" height="120px" width="120px" alt="淘多多Logo">
+            </a>
+        </div>
+
+        <div class="gap" style="width: 20px;"></div>
+
+        <div class="search-container">
+            <form id="search-form" action="/goods/search/" method="GET">
+                <div class="select-container">
+                    <select id="search-type" name="type">
+                        <option value="goods">宝贝</option>
+                        <option value="shops">店铺</option>
+                    </select>
+                </div>
+                <input type="text" name="searchContent" class="search-input" placeholder="请输入搜索内容">
+                <button type="submit" class="search-button">搜索</button>
+            </form>
+        </div>
+    </div>
+    <!--店铺-->
+    <div class="body">
+        <div class="header">
+            <img src="{{ shop.slogourl }}" alt="Store Logo" class="logo" data-shop="{{ shop.getShopDict }}">
+            <div class="store-info">
+                {% load good_filters %}
+                <h2>{{ shop.sname }}</h2>
+                <div>粉丝数：{{ shop.fan_num }} </div>
+                <div>总销量：{{ shop.getTotalSalesVolume|format_num }}</div>
+                <b> 店铺评分：{{ shop.rating }}</b>
+            </div>
+            {% if IfSameOrFollow == 0 %}
+                <!--商家视角--->
+                <!--用于操作商品-->
+                <div class="operations-menu">
+                    <img src="/static/images/icon/operate_shop.png" alt="operateMenu" height="30px" width="30px">
+                    <div class="operations">
+                        <div id="addgoods" data-my-data="{{ shop.id }}" onclick="showModal()">添加商品</div>
+                        <div id="deletegoods" shopid="{{ shop.id }}">下架商品</div>
+                        <div id="modifygoods" shopid="{{ shop.id }}">修改商品</div>
+                        <div id="setHotgoods" shopid="{{ shop.id }}">设置热门</div>
+                        <div id="addColor" shopid="{{ shop.id }}">添加款式</div>
+                    </div>
+                </div>
+            {% elif IfSameOrFollow == 1 %}
+                <button id="cancelcollectshop" class="add-to-favorite" data-my-data="{{ shop.id }}">- 取消收藏</button>
+            {% else %}
+                <button id="collectshop" class="add-to-favorite" data-my-data="{{ shop.id }}">+ 收藏店铺</button>
+            {% endif %}
+        </div>
+        <div class="nav">
+            <div class="nav-item">店铺首页</div>
+        </div>
+
+        <div class="goods-model">
+            <div class="goods-content">
+                {% for goods in goodsList %}
+                    {% if goods.isdelete == False %}
+                        <div class="good">
+                            {% if IfSameOrFollow == 0 %}
+                                <!---商家视角--->
+                                {% load good_filters %}
+                                <div class="good-card" goodsid="{{ goods.id }}">
+                                    <img class="goodimg" goodsid="{{ goods.id }}" data-goods="{{ goods.goods_to_dict }}"
+                                         src="{{ goods.getColorImg }}">
+                                    <div class="name" style="cursor:pointer">{{ goods.gname }}</div>
+                                    <div class="sales-volume">已售：{{ goods.getSalesVolume|format_num }}</div>
+                                    <div class="price">
+                                        <i>￥</i>
+                                        <p class="big"> {{ goods.price }} </p>
+                                    </div>
+                                    {% if goods.isHot %}
+                                        <div class="hotLabel" goodsid="{{ goods.id }}">HOT</div>
+                                    {% endif %}
+                                </div>
+
+                                <!---各种按钮--->
+                                <div class="deletebutton" goodsid="{{ goods.id }}">X</div>
+                                <div class="modifybutton" goodsid="{{ goods.id }}">
+                                    <img src="/static/images/icon/modify_good.png">
+                                </div>
+                                <div class="setHotbutton" goodsid="{{ goods.id }}">
+                                    <img src="/static/images/icon/setHot_good.png">
+                                </div>
+                                <div class="addColorbutton" goodsid="{{ goods.id }}">
+                                    <img src="/static/images/icon/addColor.png">
+                                </div>
+                            {% else %}
+                                <!---用户视角--->
+                                <a href="/goods/goodsdetails/{{ goods.id }}">
+                                    <img src="{{ goods.getColorImg }}">
+                                    <div class="name">{{ goods.gname }}</div>
+                                    <div class="sales-volume">已售：{{ goods.getSalesVolume|format_num }}</div>
+                                    <div class="price">
+                                        <i>￥</i>
+                                        <p class="big"> {{ goods.price }} </p>
+                                    </div>
+                                    {% if goods.isHot %}
+                                        <div class="hotLabel" goodsid="{{ goods.id }}">HOT</div>
+                                    {% endif %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        {% if IfSameOrFollow == 0 %}
+                            <div class="good">
+                                {% load good_filters %}
+                                <div class="good-card" goodsid="{{ goods.id }}">
+                                    <img class="goodimg" goodsid="{{ goods.id }}" data-goods="{{ goods.goods_to_dict }}"
+                                         src="/static/images/deleteshop.jpg">
+                                    <div class="name" style="cursor:pointer">{{ goods.gname }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="pager" style="text-align: center; font-size: 16px; overflow: hidden; margin-top: 10px;">
+            {% if goodsList.has_previous %}
+                <a href="/shop/{{ shop.id }}/shopdetail/page/{{ goodsList.previous_page_number }}"
+                   style="display: inline-block; padding: 5px; margin: 5px;">上一页</a>
+            {% endif %}
+
+            {% for page in page_list %}
+                {% if page == num %}
+                    <span style="display: inline-block; padding: 5px; margin: 5px; color:orange;font-size:20px;">{{ num }}</span>
+                {% else %}
+                    <a href="/shop/{{ shop.id }}/shopdetail/page/{{ page }}"
+                       style="display: inline-block; padding: 5px; margin: 5px;">{{ page }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if goodsList.has_next %}
+                <a href="/shop/{{ shop.id }}/shopdetail/page/{{ goodsList.next_page_number }}"
+                   style="display: inline-block; padding: 5px; margin: 5px;">下一页</a>
+            {% endif %}
+        </div>
+    </div>
+    <!---添加商品的模态框-->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+
+            <h2>填写商品信息</h2>
+
+            <form id="loginForm">
+                {% csrf_token %}
+                <input type="text" id="gname" name="gname" value="" autocomplete="off"
+                       class="form-group" placeholder="商品名称" required>
+                <input type="text" id="gdesc" name="gdesc" value="" autocomplete="off"
+                       class="form-group" placeholder="商品详情描述" required>
+                <input type="text" id="oldprice" name="oldprice" value="" autocomplete="off"
+                       class="form-group" placeholder="原价" required>
+                <input type="text" id="price" name="price" value="" autocomplete="off"
+                       class="form-group" placeholder="现价" required>
+                <input type="text" id="colorname" name="colorname" value="" autocomplete="off"
+                       class="form-group" placeholder="默认款式" required>
+                <input type="text" id="size" name="size" value="" autocomplete="off"
+                       class="form-group" placeholder="输入所有规格，用空格分开" required>
+                <div class="form-group" id="goodimage">
+                    <label id="desc" style="font-size: 13px;">上传商品第1张图片</label>
+                    <input type="file" id="fileInput" accept="image/*" style=" display:none; ">
+                </div>
+                <input type="text" id="count" name="count" value="" autocomplete="off"
+                       class="form-group" placeholder="目前库存" required>
+                <select id="number-select" class="form-group" required>
+                    <option value="" disabled selected>请选择商品详情的展示方面的数量</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+
+                <div id="input-container" style="z-index: 1;">
+                    <input type="text" id="detailname-1" placeholder="输入详情类别！" class="form-group"
+                           style=" display:none " required>
+                    <div class="form-group" id="goodimage1" style="display: none">
+                        <label id="desc1" style="font-size: 13px;">上传商品详情第1张图片</label>
+                        <input type="file" id="fileInput1" accept="image/*" style=" display:none; ">
+                    </div>
+                    <input type="text" id="detailname-2" placeholder="输入详情类别！" class="form-group"
+                           style=" display:none ">
+                    <div class="form-group" id="goodimage2" style="display: none">
+                        <label id="desc2" style="font-size: 13px;">上传商品详情第2张图片</label>
+                        <input type="file" id="fileInput2" accept="image/*" style=" display:none; ">
+                    </div>
+                    <input type="text" id="detailname-3" placeholder="输入详情类别！" class="form-group"
+                           style=" display:none ">
+                    <div class="form-group" id="goodimage3" style="display: none">
+                        <label id="desc3" style="font-size: 13px;">上传商品详情第3张图片</label>
+                        <input type="file" id="fileInput3" accept="image/*" style=" display:none; ">
+                    </div>
+                </div>
+
+                <select name="category" id="category" class="form-group" required>
+                    {% for category in categoryList %}
+                        {% if category.id != 12 %}
+                            <option value="{{ category.cname }}">{{ category.cname }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <button>提交</button>
+                <br>
+            </form>
+        </div>
+    </div>
+
+    <div id="modifyModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+
+            <h2>修改商品信息</h2>
+
+            <form id="modifyform" shopid="{{ shop.id }}" goodsid="">
+                {% csrf_token %}
+                <input id="newGname" class="form-group" type="text" placeholder="输入新商品名（不修改保持空）">
+                <input id="newGdsec" class="form-group" type="text" placeholder="输入新商品描述（不修改保持空）">
+                <input id="newPrice" class="form-group" type="text" placeholder="输入新价格（不修改保持空）">
+                <input id="newInventory" class="form-group" type="text" placeholder="输入新库存数（不修改保持空）">
+                <select id="modifyColor" class="form-group">
+                    <option value="" disabled selected>选择要修改的款式</option>
+                </select>
+                <select id="modifySize" class="form-group">
+                    <option value="" disabled selected>选择要修改的规格</option>
+                </select>
+                <button type="submit">提交</button>
+                <div class="nowInventory">
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addColorModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+
+            <h2>添加商品款式</h2>
+
+            <form id="addColorform" shopid="{{ shop.id }}" goodsid="">
+                {% csrf_token %}
+                <input id="newColor" class="form-group" type="text" placeholder="输入新商品款式">
+                <input id="newCount" class="form-group" type="text" placeholder="输入库存数">
+                <div class="form-group" id="addColorImg">
+                    <label id="" style="font-size: 13px;">请上传新款式的图片</label>
+                    <input id="addColorImginput" class="form-group" type="file" accept="image/*" style="display: none">
+                </div>
+                <button>提交</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="goodModal" class="modal">
+        <div class="sheet-container">
+            <div class="options">
+                <select id="year">
+                    <option value="2024">2024年</option>
+                </select>
+                <select id="month">
+                    <option value="01">1月</option>
+                    <option value="02">2月</option>
+                    <option value="03">3月</option>
+                    <option value="04">4月</option>
+                    <option value="05">5月</option>
+                    <option value="06">6月</option>
+                    <option value="07">7月</option>
+                    <option value="08">8月</option>
+                    <option value="09">9月</option>
+                    <option value="10">10月</option>
+                    <option value="11">11月</option>
+                    <option value="12">12月</option>
+                </select>
+                <select id="situation">
+                    <option value="1">销售情况</option>
+                    <option value="2">库存情况</option>
+                </select>
+            </div>
+            <div class="close">&times;</div>
+            <div class="sheet">
+
+            </div>
+        </div>
+    </div>
+
+    <div id="shopModal" class="modal">
+        <div class="sheet-container">
+            <div class="options">
+                <select id="type">
+                    <option value="1">销量占比</option>
+                    <option value="2">销售数量</option>
+                </select>
+            </div>
+            <div class="close">&times;</div>
+            <div class="sheet">
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+        $('.name').on('click', function () {
+            var goodsid = $(this).parent().attr('goodsid')
+            window.location.href = `/goods/goodsdetails/${goodsid}`
+        })
+    </script>
+    <script>
+        //添加商品
+        var modal = document.getElementById("myModal");
+
+        // 显示模态框的函数
+        function showModal() {
+            modal.style.display = "block";
+        }
+
+        // 隐藏模态框的函数
+        function closeModal() {
+            modal.style.display = "none";
+        }
+
+        const formData = new FormData();
+        // 点击上传图片
+        document.getElementById('goodimage').onclick = function () {
+            document.getElementById('fileInput').click();
+        };
+        document.getElementById('fileInput').onchange = function () {
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
+
+            formData.append('goodimage', file);
+        }
+        document.getElementById('goodimage1').onclick = function () {
+            document.getElementById('fileInput1').click();
+        };
+        document.getElementById('fileInput1').onchange = function () {
+            var fileInput1 = document.getElementById('fileInput1');
+            var file1 = fileInput1.files[0];
+
+            formData.append('goodimage1', file1);
+        }
+        document.getElementById('goodimage2').onclick = function () {
+            document.getElementById('fileInput2').click();
+        };
+        document.getElementById('fileInput2').onchange = function () {
+            var fileInput2 = document.getElementById('fileInput2');
+            var file2 = fileInput2.files[0];
+
+            formData.append('goodimage2', file2);
+        }
+        document.getElementById('goodimage3').onclick = function () {
+            document.getElementById('fileInput3').click();
+        };
+        document.getElementById('fileInput3').onchange = function () {
+            var fileInput3 = document.getElementById('fileInput3');
+            var file3 = fileInput3.files[0];
+
+            formData.append('goodimage3', file3);
+        }
+
+
+        $("#fileInput").change(function () {
+            readURL(this, 0);
+        });
+        $("#fileInput1").change(function () {
+            readURL(this, 1);
+        });
+        $("#fileInput2").change(function () {
+            readURL(this, 2);
+        });
+        $("#fileInput3").change(function () {
+            readURL(this, 3);
+        });
+
+        function readURL(input, i) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                if (i === 0) {
+                    reader.onload = function (e) {
+                        $('#goodimage label').text("已上传完毕！");
+                    };
+                } else {
+                    const label = '#goodimage' + i + ' label';
+                    reader.onload = function (e) {
+                        $(label).text("已上传完毕！");
+                    };
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+
+        function clearErrorMessages() {
+            $('#gname').removeClass('short-password').attr('placeholder', '商品名称');
+            $('#gdesc').removeClass('short-password').attr('placeholder', '商品详情说明');
+            $('#oldprice').removeClass('short-password').attr('placeholder', '原价');
+            $('#price').removeClass('short-password').attr('placeholder', '现价');
+            $('#colorname').removeClass('short-password').attr('placeholder', '款式');
+            $('#count').removeClass('short-password').attr('placeholder', '目前库存');
+            $('#size').removeClass('short-password').attr('placeholder', '输入所有规格，用空格分开');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            clearErrorMessages();
+            if (!formData.has('goodimage')) {
+                alert('没有上传商品图片！');
+                return;
+            }
+            const gname = $('#gname').val();
+            const gdesc = $('#gdesc').val();
+            const oldprice = $('#oldprice').val();
+            const price = $('#price').val();
+            const category = $('#category').val()
+            const colorname = $('#colorname').val();
+            const count = $('#count').val();
+            const size = $('#size').val();
+            formData.append('gname', gname);
+            formData.append('gdesc', gdesc);
+            formData.append('oldprice', oldprice);
+            formData.append('price', price);
+            formData.append('category', category);
+            formData.append('colorname', colorname);
+            formData.append('count', count);
+            formData.append('size', size);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            const shopid = $('#addgoods').data('my-data');
+            formData.append('shopid', shopid);
+            const url = `/shop/${shopid}/shopdetail/`;
+            formData.append('action', 'addgood');
+            const detailnum = $('#number-select').val();
+            formData.append('detailnum', detailnum);
+            const detailname1 = $('#detailname-1').val();
+            const detailname2 = $('#detailname-2').val();
+            const detailname3 = $('#detailname-3').val();
+            formData.append('detailname1', detailname1)
+            formData.append('detailname2', detailname2)
+            formData.append('detailname3', detailname3)
+            if (detailnum == 1) {
+                if (!formData.has('goodimage1')) {
+                    alert('没有上传商品详情图片！');
+                    return;
+                }
+            } else if (detailnum == 2) {
+                if (!formData.has('goodimage1') || !formData.has('goodimage2')) {
+                    alert('没有上传商品详情图片！');
+                    return;
+                }
+            } else if (detailnum == 3) {
+                if (!formData.has('goodimage1') || !formData.has('goodimage2') || !formData.has('goodimage3')) {
+                    alert('没有上传商品详情图片！');
+                    return;
+                }
+            }
+
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        clearErrorMessages();
+                        closeModal();
+                        location.reload();
+                    } else {
+                        alert(response.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error: " + error);
+                }
+            });
+
+        });
+    </script>
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        })
+        $(document).ready(function () {
+            $('#collectshop').click(function () {
+
+                const shopid = $('#collectshop').data('my-data');
+                const url = `/shop/${shopid}/shopdetail/`;
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: {
+                        'action': 'favoriteshop',
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);  // 弹出收藏成功的消息
+                            location.reload();
+                        } else {
+                            alert(response.error);  // 弹出收藏失败的消息
+                            if (response.error == '未登录，请先登录！') {
+                                window.location.href = '/user/login/';
+                                return;
+                            }
+                            location.reload();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('请求失败: ' + error);
+                    }
+                });
+            });
+            $('#cancelcollectshop').click(function () {
+                const shopid = $('#cancelcollectshop').data('my-data');
+                const url = `/shop/${shopid}/shopdetail/`;
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: {
+                        'action': 'cancelfavoriteshop',
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message);  // 弹出收藏成功的消息
+                            location.reload();
+                        } else {
+                            alert(response.error);  // 弹出收藏失败的消息
+
+
+                            location.reload();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('请求失败: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        //删除商品
+        let mutex = 0;
+        let isDeleteShow = 0;
+        //展示删除按钮
+        $('#deletegoods').on('click', function () {
+            if (mutex === 1 && isDeleteShow === 0) {
+                // 如果已经在进行别的操作，此操作就会被禁止
+                return
+            }
+            if (isDeleteShow === 0) {
+                mutex = 1;
+                $(this).siblings().css('cursor', 'not-allowed');
+                $('.deletebutton').css('visibility', 'visible');
+                $(this).text('完成下架');
+                isDeleteShow += 1;
+            } else {
+                $('.deletebutton').css('visibility', 'hidden');
+                $(this).text('下架商品');
+                $(this).siblings().css('cursor', 'pointer');
+                isDeleteShow = 0;
+                mutex = 0;
+            }
+        });
+        // 点击X就删除
+        $('.deletebutton').on('click', function () {
+            const $this = $(this);
+            const goodsid = $(this).attr('goodsid');
+            const shopid = $('#deletegoods').attr('shopid');
+            const url = `/shop/${shopid}/shopdetail/`;
+            let confirmed = confirm('确定要下架这个商品吗？');
+            if (confirmed) {
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: {
+                        'action': 'deletegood',
+                        'goodsid': goodsid,
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $this.closest('.good');
+                        } else {
+                            alert(response.error)
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('请求失败: ' + error);
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        // 修改商品
+        let isModifyShow = 0;
+        //展示修改按钮
+        $('#modifygoods').on('click', function () {
+            if (mutex === 1 && isModifyShow === 0) {
+                return;
+            }
+            if (isModifyShow === 0) {
+                mutex = 1;
+                $(this).siblings().css('cursor', 'not-allowed');
+                $('.modifybutton').css('visibility', 'visible');
+                $(this).text('完成修改');
+                isModifyShow += 1;
+            } else {
+                $('.modifybutton').css('visibility', 'hidden');
+                $(this).text('修改商品');
+                $(this).siblings().css('cursor', 'pointer');
+                isModifyShow = 0;
+                mutex = 0;
+            }
+        });
+        //点击对应的修改按钮后请求商品目前的信息
+        $('.modifybutton').on('click', function () {
+            var modal = $('#modifyModal');
+            const $this = $(this);
+            const goodsid = $(this).attr('goodsid');
+            const shopid = $('#modifygoods').attr('shopid');
+            const url = `/shop/${shopid}/shopdetail/`;
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: {
+                    'action': 'requestModify',
+                    'goodsid': goodsid,
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // 将获取到的信息呈现出来
+                        inventorylist = JSON.parse(response.inventorylist)
+                        colorlist = JSON.parse(response.colorlist)
+                        sizelist = JSON.parse(response.sizelist)
+                        // 添加款式选项
+                        colorlist.forEach(function (color) {
+                            html = `<option  value="${color}" class="new"> ${color} </option>`
+                            $('#modifyColor').append(html)
+                        });
+                        // 添加规格选项
+                        sizelist.forEach(function (size) {
+                            html = `<option  value="${size}" class="new"> ${size} </option>`
+                            $('#modifySize').append(html)
+                        });
+                        $('#modifyform').attr('goodsid', goodsid)
+                        // 显示当前库存信息
+                        inventorylist.forEach(function (inventory) {
+                            html = `<div class="new">款式：${inventory.color}    规格：${inventory.size}    库存：${inventory.count}</div>`
+                            $('.nowInventory').append(html)
+                        });
+                    } else {
+                        alert(response.error)
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('请求失败: ' + error);
+                }
+            });
+            modal.show();
+        });
+        // 提交修改信息
+        $('#modifyform').on('submit', function (event) {
+            // 阻止表单的默认提交行为
+            event.preventDefault();
+            // 获取表单数据
+            var newGname = $('#newGname').val();
+            var newGdsec = $('#newGdsec').val();
+            var newPrice = $('#newPrice').val();
+            var newInventory = $('#newInventory').val();
+            var modifyColor = $('#modifyColor').val();
+            var modifySize = $('#modifySize').val();
+            var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+            const shopid = $('#modifyform').attr('shopid')
+            const goodsid = $('#modifyform').attr('goodsid')
+            const url = `/shop/${shopid}/shopdetail/`;
+            // 发送 AJAX 请求
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: {
+                    'csrfmiddlewaretoken': csrfToken,
+                    'goodsid': goodsid,
+                    'newGname': newGname,
+                    'newGdsec': newGdsec,
+                    'newPrice': newPrice,
+                    'newInventory': newInventory,
+                    'modifyColor': modifyColor,
+                    'modifySize': modifySize,
+                    'action': 'modifygood'
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('修改成功');
+                        location.reload()
+                    } else {
+                        alert('修改失败: ' + response.error);
+                    }
+                },
+                error: function (error) {
+                    alert('请求失败');
+                }
+            });
+        });
+
+        $('#modifyModal .close').on('click', function () {
+            var modal = $('#modifyModal');
+            //将上次的全部删除
+            $('.new').remove();
+            modal.hide();
+        });
+    </script>
+
+    <script>
+        //设置热门商品
+        let isSetHotShow = 0;
+        $('#setHotgoods').on('click', function () {
+            if (mutex === 1 && isSetHotShow === 0) {
+                return;
+            }
+            if (isSetHotShow === 0) {
+                mutex = 1;
+                $(this).siblings().css('cursor', 'not-allowed');
+                $('.setHotbutton').css('visibility', 'visible');
+                $(this).text('完成设置')
+                isSetHotShow += 1;
+            } else {
+                $('.setHotbutton').css('visibility', 'hidden');
+                $(this).text('设置热门');
+                $(this).siblings().css('cursor', 'pointer');
+                isSetHotShow = 0;
+                mutex = 0;
+            }
+        });
+        $('.setHotbutton').on('click', function () {
+            const $this = $(this);
+            const goodsid = $(this).attr('goodsid');
+            const shopid = $('#setHotgoods').attr('shopid');
+            const url = `/shop/${shopid}/shopdetail/`;
+            let confirmed = confirm('确定要设置/取消这个商品热门吗？');
+            if (confirmed) {
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: {
+                        'action': 'setHotgood',
+                        'goodsid': goodsid,
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message)
+                            if (response.set) {
+                                html = `<div class="hotLabel" goodsid="{{ goods.id }}">HOT</div>`
+                                $this.siblings('.good-card').append(html)
+                            } else {
+                                $this.siblings('.good-card').find('.hotLabel').remove();
+                            }
+                        } else {
+                            alert(response.error)
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('请求失败: ' + error);
+                    }
+                });
+            }
+        })
+    </script>
+    <script>
+        // 添加款式
+        let isAddColorShow = 0;
+
+        $('#addColor').on('click', function () {
+            if (mutex === 1 && isAddColorShow === 0) {
+                return;
+            }
+            if (isAddColorShow === 0) {
+                mutex = 1;
+                $(this).siblings().css('cursor', 'not-allowed');
+                $('.addColorbutton').css('visibility', 'visible');
+                $(this).text('完成添加')
+                isAddColorShow += 1;
+            } else {
+                $('.addColorbutton').css('visibility', 'hidden');
+                $(this).text('添加款式');
+                $(this).siblings().css('cursor', 'pointer');
+                isAddColorShow = 0;
+                mutex = 0;
+            }
+        });
+
+        document.getElementById('addColorImg').onclick = function () {
+            document.getElementById('addColorImginput').click();
+        };
+
+        $('#addColorImginput').on('change', function () {
+            var fileName = $(this).val().split('\\').pop(); // 获取文件名
+            $('#addColorImg label').text('已选择图片: ' + fileName); // 修改 label 的文字
+        });
+
+        $('.addColorbutton').on('click', function () {
+            var modal = $('#addColorModal');
+            var goodsid = $(this).attr('goodsid');
+            $('#addColorform').attr('goodsid', goodsid);
+            modal.show();
+        });
+
+        $('#addColorform').on('submit', function (event) {
+            // 阻止表单的默认提交行为
+            event.preventDefault();
+            // 创建一个 FormData 对象
+            var formData = new FormData();
+            formData.append('csrfmiddlewaretoken', $('input[name="csrfmiddlewaretoken"]').val());
+            formData.append('newColor', $('#newColor').val());
+            formData.append('count', $('#newCount').val());
+            formData.append('colorImg', $('#addColorImginput')[0].files[0]);
+            formData.append('goodsid', $(this).attr('goodsid'));
+            formData.append('action', 'addColor')
+            const shopid = $(this).attr('shopid');
+            const url = `/shop/${shopid}/shopdetail/`;
+            // 发送 AJAX 请求
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                processData: false, // 必须设置为 false 以避免 jQuery 自动处理数据
+                contentType: false, // 必须设置为 false 以避免 jQuery 自动设置 content type
+                success: function (response) {
+                    if (response.success) {
+                        alert('修改成功');
+                        //清空原有数据
+                        $('#newColor').val('');
+                        $('#newCount').val('');
+                        $('#addColorImginput').val('');
+                        $('#addColorImg label').text('请上传新款式的图片');
+                        $('#addColorModal').hide();
+                    } else {
+                        alert('修改失败: ' + response.error);
+                    }
+                },
+                error: function (error) {
+                    alert('请求失败');
+                }
+            });
+        });
+
+        $('#addColorModal .close').on('click', function () {
+            var modal = $('#addColorModal');
+            //清空原有数据
+            $('#newColor').val('');
+            $('#newCount').val('');
+            $('#addColorImginput').val('');
+            $('#addColorImg label').text('请上传新款式的图片');
+            modal.hide();
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#number-select').change(function () {
+                var selectedValue = $(this).val();
+                var inputContainer = $('#input-container');
+                if (selectedValue !== '') {
+                    document.getElementById('detailname-1').style.display = 'none';
+                    document.getElementById('goodimage1').style.display = 'none';
+                    document.getElementById('detailname-2').style.display = 'none';
+                    document.getElementById('goodimage2').style.display = 'none';
+                    document.getElementById('detailname-3').style.display = 'none';
+                    document.getElementById('goodimage3').style.display = 'none';
+                    for (var i = 0; i < parseInt(selectedValue, 10); i++) {
+                        let j = i + 1;
+                        let id1 = 'goodimage' + j;
+                        let id2 = 'detailname-' + j;
+                        let elem1 = document.getElementById(id1);
+                        let elem2 = document.getElementById(id2);
+                        elem1.style.display = 'flex';
+                        elem2.style.display = 'flex';
+                    }
+                }
+            });
+        });
+    </script>
+    <script>
+        //用于显示数据表格
+        $('.goodimg').on('click', function () {
+            var modal = $('#goodModal');
+            var goodData = $(this).attr('data-goods');
+            var goodDict = JSON.parse(goodData);
+            // 解析 comments 和 sales 数据
+            var comments = JSON.parse(goodDict.comments);
+            var sales = JSON.parse(goodDict.sales);
+            var styles = JSON.parse(goodDict.styles);
+            $('#goodModal #month').on('change', function () {
+                var selectedSit = $('#situation').val();
+                if (selectedSit == 1) {
+                    var selectedMonth = $(this).val();
+                    var selectedYear = $('#year').val();
+                    const selectedDate = selectedYear + '-' + selectedMonth
+                    showSalesSheet(selectedDate, comments, sales, goodDict.gname);
+                }
+            });
+
+            $('#goodModal #situation').on('change', function () {
+                var selectedSit = $(this).val();
+                if (selectedSit == 1) {
+                    showSalesSheet('2024-01', comments, sales, goodDict.gname);
+                } else {
+                    showInventorySheet(styles, goodDict.gname)
+                }
+
+            })
+
+            //默认
+            showSalesSheet('2024-01', comments, sales, goodDict.gname);
+
+            modal.show();
+        });
+
+        function showSalesSheet(month, comments, sales, gname) {
+            var startDate = new Date(month + '-01');
+            var endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+            var daysInMonth = endDate.getDate();
+
+            var xAxisCategories = [];
+            for (var day = 1; day <= daysInMonth; day++) {
+                xAxisCategories.push(day.toString().padStart(2, '0'));
+            }
+
+            var commentsData = Array(daysInMonth).fill(0);
+            var salesData = Array(daysInMonth).fill(0);
+
+            comments.forEach(function (comment) {
+                var commentDate = new Date(comment.date);
+                if (commentDate.getFullYear() === startDate.getFullYear() && commentDate.getMonth() === startDate.getMonth()) {
+                    commentsData[commentDate.getDate() - 1] = comment.count;
+                }
+            });
+
+            sales.forEach(function (sale) {
+                var saleDate = new Date(sale.date);
+                if (saleDate.getFullYear() === startDate.getFullYear() && saleDate.getMonth() === startDate.getMonth()) {
+                    salesData[saleDate.getDate() - 1] = sale.count;
+                }
+            });
+            json = {
+                title: {text: gname + ' 销售情况'},
+                xAxis: {categories: xAxisCategories, title: {text: '日期'}},
+                yAxis: {title: {text: '数量'}, plotLines: [{value: 0, width: 1, color: '#808080'}]},
+                tooltip: {valueSuffix: ''},
+                legend: {layout: 'vertical', align: 'right', verticalAlign: 'middle', borderWidth: 0},
+                series: [
+                    {name: '评论数量', data: commentsData},
+                    {name: '销售数量', data: salesData}
+                ]
+            }
+            // 创建图表
+            $('#goodModal .sheet').highcharts(json)
+        }
+
+        function showInventorySheet(styles, gname) {
+            var categories = [];
+            var series_dict = {};
+            var series = []
+            styles.forEach(function (style) {
+                if (!categories.includes(style.color)) {
+                    categories.push(style.color);
+                }
+                for (var key in style.size) {
+                    count = style.size[key]
+                    if (!(key in series_dict)) {
+                        series_dict[key] = []
+                    }
+                    series_dict[key].push(count)
+                }
+            });
+            for (var key in series_dict) {
+                var data = series_dict[key]
+                series.push({
+                    name: key,
+                    data: data
+                })
+            }
+            json = {
+                chart: {type: 'column'},
+                title: {text: gname + ' 库存情况'},
+                xAxis: {categories: categories},
+                yAxis: {min: 0, title: {text: '数量(件)'}},
+                plotOptions: {column: {stacking: 'normal'}},
+                series: series
+            }
+            $('#goodModal .sheet').highcharts(json)
+        }
+
+        $('#goodModal .close').on('click', function () {
+            var modal = $('#goodModal');
+            // 清除图表
+            $('#goodModal .sheet').empty();
+            // 重置 select 的选项到默认值
+            $('#goodModal select').prop('selectedIndex', 0);
+            modal.hide();
+        });
+    </script>
+    <script>
+        $('.logo').on('click', function () {
+            var modal = $('#shopModal');
+            var shopData = $(this).attr('data-shop');
+            var shopDict = JSON.parse(shopData);
+
+            var proportions = JSON.parse(shopDict.proportionSales)
+            var total = JSON.parse(shopDict.totalSales)
+            $('#type').on('change', function () {
+                type = $(this).val();
+                if (type == 1) {
+                    showShopProSheet(shopDict.sname, proportions)
+                } else {
+                    showShopTotalSheet(shopDict.sname, total)
+                }
+            })
+            showShopProSheet(shopDict.sname, proportions)
+            modal.show();
+        })
+
+        function showShopTotalSheet(sname, volumes) {
+            var categories = [];
+            var data = []
+
+            volumes.forEach(function (volume) {
+                categories.push(volume.gname)
+                data.push(volume.volume)
+            })
+            var series = [{name: 'salesVolume', data: data}]
+            json = {
+                chart: {type: 'column'},
+                title: {text: sname + ' 各商品销售量'},
+                xAxis: {
+                    categories: categories,
+                    min: 0,
+                    max: 5,
+                    scrollbar: {
+                        enabled: true
+                    }
+                },
+                yAxis: {min: 0, title: {text: '数量(件)'},},
+                plotOptions: {column: {stacking: 'normal'}},
+                series: series
+            }
+            $('#shopModal .sheet').highcharts(json)
+        }
+
+        function showShopProSheet(sname, proportions) {
+            var chart = {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false
+            };
+            var title = {
+                text: sname + ' 各商品总销售量占比'
+            };
+            var tooltip = {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            };
+            var plotOptions = {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b>{point.name}%</b>: {point.percentage:.1f} %',
+                        style: {
+                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                        }
+                    }
+                }
+            };
+            var data = []
+            proportions.forEach(function (pro) {
+                dataitem = []
+                dataitem.push(pro.gname)
+                dataitem.push(pro.proportion)
+                data.push(dataitem)
+            })
+            var series = [{
+                type: 'pie',
+                name: 'Browser share',
+                data: data
+            }];
+            var json = {};
+            json.chart = chart;
+            json.title = title;
+            json.tooltip = tooltip;
+            json.series = series;
+            json.plotOptions = plotOptions;
+            $('#shopModal .sheet').highcharts(json);
+        }
+
+        $('#shopModal .close').on('click', function () {
+            var modal = $('#shopModal');
+            // 清除图表
+            $('#shopModal .sheet').empty();
+            // 重置 select 的选项到默认值
+            $('#shopModal select').prop('selectedIndex', 0);
+            modal.hide();
+        });
+    </script>
+{% endblock %}

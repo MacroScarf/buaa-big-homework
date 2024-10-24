@@ -1,0 +1,177 @@
+<link rel="stylesheet" href="/static/css/openShop.css">
+<h2 class="center-title">商家认证</h2>
+
+<div class="shopInformation">
+    <!-- 步骤1: 确认账号信息 -->
+    <div class="step">
+        <img src="/static/images/step1.png" width="30px" height="30px" alt="">
+        <span class="title">请确认账号信息</span>
+    </div>
+
+    <div class="area">
+        <span class="tip">用户名：</span>
+        <span class="message">{{ user.uname }}</span>
+    </div>
+
+    <div class="border"></div>
+
+    <!-- 步骤2: 填写店铺名 -->
+    <div class="step">
+        <img src="/static/images/step2.png" width="30px" height="30px" alt="">
+        <span class="title">请填写店铺名</span>
+        <span class="" style="color: red; font-size: 16px;">*</span>
+    </div>
+
+    <div class="shopname">
+        <form id="form-group" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="sname">
+                <input type="text" id="sname" name="sname" value="" autocomplete="off" placeholder="长度不超过15字符">
+            </label>
+        </form>
+    </div>
+
+    <div class="border"></div>
+
+    <!-- 步骤3: 上传店铺头像 -->
+    <div class="step">
+        <img src="/static/images/step3.png" width="30px" height="30px" alt="">
+        <span class="title">请上传店铺头像（可选）</span>
+    </div>
+
+    <div class="area">
+        <span class="tip">点击默认店铺头像上传图片</span>
+    </div>
+
+    <div class="shoplogo">
+        <img src="/static/images/shop_logo.png" id="shopLogo" width="150px" height="150px" alt="店铺头像">
+        <label for="fileInput" class="upload-btn" style="display: inline-block; cursor: pointer;">
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </label>
+    </div>
+
+    <div class="submit">
+        <button id="submitBtn" class="submitBtn" onclick="submit(event)">提交店铺信息</button>
+    </div>
+
+</div>
+
+<script>
+    var formData = new FormData();
+
+    // 点击上传图片
+    document.getElementById('shopLogo').onclick = function () {
+        document.getElementById('fileInput').click();
+    };
+
+    document.getElementById('fileInput').onchange = function () {
+        var fileInput = document.getElementById('fileInput');
+        var file = fileInput.files[0];
+        formData.append('shop_logo', file);
+    }
+
+    function readURLAndResize(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var img = new Image();
+                img.onload = function () {
+                    var maxWidth = 150;
+                    var maxHeight = 150;
+                    var width = img.width;
+                    var height = img.height;
+
+                    // 计算缩放比例
+                    var scale = Math.min(maxWidth / width, maxHeight / height);
+                    var newWidth = Math.floor(width * scale);
+                    var newHeight = Math.floor(height * scale);
+
+                    // 创建一个canvas元素用于绘制缩放后的图片
+                    var canvas = document.createElement('canvas');
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+
+                    // 绘制缩放后的图片
+                    var ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                    // 如果图片不是正方形，或者新大小不是150x150，则裁剪到中心150x150区域
+                    if (newWidth !== 150 || newHeight !== 150) {
+                        var cropCanvas = document.createElement('canvas');
+                        cropCanvas.width = 150;
+                        cropCanvas.height = 150;
+                        var cropCtx = cropCanvas.getContext("2d");
+
+                        // 计算裁剪的起始位置
+                        var startX = (newWidth - 150) / 2;
+                        var startY = (newHeight - 150) / 2;
+
+                        // 注意：这里我们使用startX和startY来裁剪原始缩放后的图片
+                        cropCtx.drawImage(canvas, startX, startY, 150, 150, 0, 0, 150, 150);
+
+                        // 将裁剪后的图片显示在img元素上
+                        $('#shopLogo').attr('src', cropCanvas.toDataURL());
+                    } else {
+                        // 如果缩放后的图片已经是150x150，则直接使用
+                        $('#shopLogo').attr('src', canvas.toDataURL());
+                    }
+                };
+
+                // 读取文件为DataURL
+                img.src = e.target.result;
+            };
+
+            // 读取用户选择的文件
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    $("#fileInput").change(function () {
+        readURLAndResize(this);
+    });
+
+    function clearErrorMessages() {
+        $('#sname').removeClass('short-password').attr('placeholder', '长度不超过15字符');
+    }
+
+    function submit(event) {
+        event.preventDefault(); // 阻止表单的默认提交行为
+
+        clearErrorMessages();  // 清除之前的错误信息
+
+        const sname = document.getElementById('sname').value;
+
+        formData.append('sname', sname);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        $.ajax({
+            url: '/user/center/?option=openShop',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if (response.success) {
+                    alert('商家认证成功');
+                    $('#sname').val('');
+                    $('#shopLogo').attr('src', '/static/images/shop_logo.png');
+                    window.location.href = '/user/center/';
+                } else {
+                    if (response.error === '店铺名称不能为空' || response.error === '店铺名称已存在' || response.error === '店铺名称过长') {
+                        $('#sname').val('');
+                        $('#sname').addClass('short-password').attr('placeholder', response.error);
+                    } else if (response.error === '您拥有的店铺数量已经达到最大') {
+                        alert(response.error);
+                    } else {
+                        alert('开店失败' + response.error);
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error: " + error);
+            }
+        });
+    }
+</script>
+

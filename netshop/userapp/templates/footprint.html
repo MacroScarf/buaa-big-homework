@@ -1,0 +1,23 @@
+<link rel="stylesheet" href="/static/css/myCollect.css">
+<h2 class="center-title">历史足迹</h2>
+
+<div class="myCollectInformation">
+    {% for good in goods_list %}
+        <div class="good" data-id="{{ good.id }}">
+            <a href="/goods/goodsdetails/{{ good.id }}">
+                {% if good.isdelete == False %}
+                    <img src="{{ good.getColorImg }}" alt="">
+                    <div class="name">{{ good.gname }}</div>
+                    <div class="price">
+                        <i>￥</i>
+                        <p> {{ good.price }} </p>
+                    </div>
+                {% else %}
+                    <img src="/static/images/deleteshop.jpg" alt="">
+                    <div class="name">{{ good.gname }}</div>
+                    <div class="price"></div>
+                {% endif %}
+            </a>
+        </div>
+    {% endfor %}
+</div>

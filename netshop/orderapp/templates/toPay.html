@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}订单支付{% endblock %}
+
+{% block headerjs %}
+    <link rel="stylesheet" type="text/css" href="/static/css/order.css">
+{% endblock %}
+
+{% block main %}
+    <div class="border"></div>
+    <div class="concent2">
+        <div class="to-pay">
+            <h2>订单支付</h2>
+            <div class="pay-way">
+                <h3>支付方式</h3>
+            </div>
+            <div class="pay-way-detail">
+                <img class="choose-pay-way on" src="/static/images/card.png" alt="钱包余额支付">
+            </div>
+            <div class="walletpay">
+                <p class="price">
+                    <span class="pay-font">钱包余额：</span>
+                    <span class="pay-font-bold right">￥{{ user.balance }}</span>
+                    <span class="tip right">充值完成后请刷新此页面</span>
+                </p>
+                <div class="border"></div>
+                <p class="price">
+                    <span class="pay-font">实付款：</span>
+                    <span class="pay-sum right">￥{{ totalPrice }}</span>
+                </p>
+                <div class="submit-pay">
+                    <li class="submit-order right" id="pay" title="点击支付">支付</li>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="orderId" name="orderId" value="{{ orderId }}">
+        <input type="hidden" id="orderNum" name="orderNum" value="{{ orderNum }}">
+
+        <div class="order-message">
+            <h2>订单信息</h2>
+            <div class="pay-message">
+                <span class="pay-font">用户名：</span>
+                <span class="pay-font-bold">{{ user.uname }}</span>
+            </div>
+            <div style="display: none">{{ orderId }}</div>
+            <div class="pay-message">
+                <span class="pay-font">订单号：</span>
+                <span class="pay-font-bold">{{ orderNum }}</span>
+            </div>
+            <div class="pay-message">
+                <span class="pay-font">收货人：</span>
+                <span class="pay-font-bold">{{ address.aname }}</span>
+            </div>
+            <div class="pay-message">
+                <span class="pay-font">电话号码：</span>
+                <span class="pay-font-bold">{{ address.aphone }}</span>
+            </div>
+            <div class="pay-message">
+                <span class="pay-font">收货地址：</span>
+                <span class="pay-font-bold">{{ address.addr }}</span>
+            </div>
+        </div>
+    </div>
+    {% csrf_token %}
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+        $(document).ready(function () {
+            $('#pay').on('click', function () {
+                submitPay();
+            });
+        });
+
+        function submitPay() {
+            var totalPrice = {{ totalPrice }};
+            var orderId = $('#orderId').val();
+            var orderNum = $('#orderNum').val();
+            var csrfmiddlewaretoken = $('input[name="csrfmiddlewaretoken"]').val();
+
+            $.ajax({
+                type: 'POST',
+                url: '/order/toPay/',
+                data: {
+                    'totalPrice': totalPrice,
+                    'orderId': orderId,
+                    'orderNum': orderNum,
+                    'csrfmiddlewaretoken': csrfmiddlewaretoken,
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('支付成功');
+                        window.location.href = '/order/orderList/';
+                    } else if(response.error === '余额不足，请充值') {
+                        if (confirm('余额不足，请充值。\n点击“确定”前往用户中心充值，点击“取消”返回。')) {
+                            var newTab = window.open("/user/center/", '_blank');
+                            if (newTab) {
+                                newTab.focus();
+                            } else {
+                                alert('请允许此网站弹出窗口');
+                            }
+                        }
+                    } else {
+                        alert(response.error);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error: ' + error);
+                }
+            })
+        }
+    </script>
+{% endblock %}

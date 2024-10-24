@@ -1,0 +1,12 @@
+<!--主要用来写商品详细的展示部分-->
+{% for gdname,gdurlList in goods.getDetailInfo.items %}
+    <div class="display-model">
+        <div class="title">
+            <p>{{ gdname }}</p>
+            <div class="line"></div>
+        </div>
+        {% for gdurl in gdurlList %}
+            <img src="{{ gdurl }}" alt="">
+        {% endfor %}
+    </div>
+{% endfor %}

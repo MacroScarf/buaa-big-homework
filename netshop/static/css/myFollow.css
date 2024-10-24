@@ -1,0 +1,69 @@
+.myShopInformation {
+    width: 98.5%;
+    height: 85%;
+    position: absolute;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.shopObj {
+    position: relative;
+    display: block;
+    float: left;
+    width: 45%;
+    height: 30%;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    margin: 0 40px 20px 0;
+    padding: 10px;
+    border: 1px solid #cccccc;
+}
+
+.shopObj img {
+    position: absolute;
+    border-radius: 10px;
+    display: block;
+    margin: 10px;
+    width: 120px;
+    height: 120px;
+}
+
+.sname {
+    position: absolute;
+    display: block;
+    margin: auto;
+    color: #444444;
+    top: 20px;
+    left: 160px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.sfan {
+    position: absolute;
+    display: block;
+    color: #666666;
+    top: 90px;
+    left: 160px;
+    font-size: 16px;
+}
+
+.srating {
+    position: absolute;
+    display: block;
+    padding: 3px 5px;
+    color: orange;
+    background-color: #ffffcc;
+    border-radius: 5px;
+    top: 114px;
+    left: 155px;
+    font-size: 16px;
+}
+
+.shopObj:hover {
+    box-shadow: 3px 3px 3px 3px rgba(0, 0, 0, 0.3);
+}
+
+.shopObj:hover .sname {
+    color: orange;
+}

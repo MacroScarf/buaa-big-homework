@@ -1,0 +1,21 @@
+<link rel="stylesheet" href="/static/css/myFollow.css">
+<h2 class="center-title">我的关注店铺</h2>
+
+<div class="myShopInformation">
+    {% for shop in shopslist %}
+        <a href="/shop/{{ shop.id }}/shopdetail/">
+            <div class="shopObj" data-id="{{ shop.id }}">
+                <img src="{{ shop.slogourl }}" alt="商店头像">
+                <div class="sname">
+                    <span>{{ shop.sname }}</span>
+                </div>
+                <div class="sfan">
+                    <span>粉丝数：{{ shop.fan_num }}</span>
+                </div>
+                <div class="srating">
+                    <span>店铺评分：{{ shop.rating }}</span>
+                </div>
+            </div>
+        </a>
+    {% endfor %}
+</div>

@@ -1,0 +1,55 @@
+<div class="head">
+    <ul class="options1">
+        <li class="home">
+            <a href="/goods/">
+                <img class="icon" src="/static/images/icon/home_icon.png" alt="">
+                首页
+            </a>
+        </li>
+        <li class="sub">
+            {% if user %}
+                <a href="/order/orderList/">
+                    <img class="icon" src="/static/images/icon/order_icon.png" alt="">
+                    我的订单
+                </a>
+            {% else %}
+                <a href="/user/login/">
+                    <img class="icon" src="/static/images/icon/order_icon.png" alt="">
+                    我的订单
+                </a>                
+            {% endif %} 
+
+        </li>
+        <li class="sub">
+            <a href="">
+                <img class="icon" src="/static/images/icon/serve_icon.png" alt="">
+                客户服务
+            </a>
+        </li>
+        <li class="sub">
+            <a href="/cart/queryAll/">
+                <img class="icon" src="/static/images/icon/cart_icon.png" alt="">
+                购物车
+            </a>
+        </li>
+    </ul>
+
+    <ul class="options2">
+        {% if user %}
+            <li class="register">
+                <img class="icon" src="/static/images/icon/user_icon.png" alt="">
+                <a href="/user/center/">欢迎&nbsp;&nbsp;{{ user.uname }}</a>
+            </li>
+        {% else %}
+            <li class="register">
+                <img class="icon" src="/static/images/icon/register_icon.png" alt="">
+                <a href="/user/register/">注册</a>
+            </li>
+            <li class="login">
+                <img class="icon" src="/static/images/icon/login_icon.png" alt="">
+                <a href="/user/login/">登录</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+

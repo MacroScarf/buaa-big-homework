@@ -1,0 +1,42 @@
+/*head*/
+
+.head {
+    width: 100%;
+    height: 40px;
+    padding: 0 20px;
+    background-color: #f6f6f6;
+    display: flex;
+    align-items: center;
+}
+
+.icon {
+    display: inline-block;
+    margin-right: 3px; /* 图标和文本之间的间距 */
+    width: 20px; /* 根据需要调整图标大小 */
+    height: 20px; /* 根据需要调整图标大小 */
+    vertical-align: middle; /* 确保图标和文本垂直对齐 */
+}
+
+.options1 {
+    float: left;
+}
+
+.options1 > li {
+    float: left;
+    margin-left: 15px;
+    font-size: 12px;
+}
+
+.options2 {
+    float: right;
+    margin-left: auto
+}
+
+.options2 > li {
+    float: right;
+    margin-right: 15px;
+    font-size: 12px;
+}
+
+/*head*/
+

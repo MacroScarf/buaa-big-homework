@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/head.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="icon" href="/static/images/favicon.png" type="image/png">
+    {% block headerjs %}
+
+    {% endblock %}
+</head>
+<body>
+{% include 'header.html' %}
+{% block main %}{% endblock %}
+{% block footerjs %}{% endblock %}
+</body>
+</html>

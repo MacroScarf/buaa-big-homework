@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}用户注册页面{% endblock %}
+
+{% block headerjs %}
+    <script type="text/javascript" src="/static/js/md5-min.js"></script>
+    <link rel="stylesheet" href="/static/css/register.css">
+{% endblock %}
+
+{% block main %}
+    <div class="register-body">
+        <div class="register-card">
+
+            <div class="top">
+                <div id="emailLog">用户注册</div>
+            </div>
+
+            <form id="register-form" method="post" onsubmit="return register(event);">
+                {% csrf_token %}
+                <div class="register-input-box">
+
+                    <input type="text" id="account" name="account" value="" autocomplete="off"
+                           class="register-admin active" placeholder="用户名由6-18位字母、数字、下划线和短横线组成">
+
+                    <input type="password" id="password" name="password" value="" autocomplete="off"
+                           class="register-password" placeholder="密码由6-18位字母、数字、下划线和短横线组成">
+
+                    <input type="password" id="password2" name="password2" value="" autocomplete="off"
+                           class="register-password" placeholder="再次输入密码">
+
+                    <select type="identity" id="identity" name="identity" autocomplete="off" class="register-identity">
+                        <option value="student">学生</option>
+                        <option value="campus-merchant">校园商户</option>
+                    </select>
+
+                    <button type="submit" class="register-button">注册</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+        // 清除错误信息
+        function clearErrorMessages() {
+            $('#account').removeClass('short-password').attr('placeholder', '用户名由6-18位字母、数字、下划线和短横线组成');
+            $('#password').removeClass('short-password').attr('placeholder', '密码由6-18位字母、数字、下划线和短横线组成');
+            $('#password2').removeClass('short-password').attr('placeholder', '再次输入密码');
+        }
+
+        function register(event) {
+            event.preventDefault(); // 阻止表单的默认提交行为
+
+            clearErrorMessages();  // 清除之前的错误信息
+
+            // 获取输入框的值
+            const account = $('#account').val();
+            const password = $('#password').val();
+            const password2 = $('#password2').val();
+            const hex_pwd = hex_md5(password);
+            const identity = $('#identity').val();
+            // 使用AJAX发送请求
+            $.ajax({
+                url: '/user/register/',
+                method: 'POST',
+                data: {
+                    'account': account,
+                    'password': password,
+                    'password2': password2,
+                    'hex_pwd': hex_pwd,
+                    'identity': identity,
+                    'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('注册成功，点击跳转到用户中心');
+                        // 跳转
+                        window.location.href = '/user/center/';
+                    } else {
+                        if (response.error === '用户已存在' || response.error === '用户名格式不正确') {
+                            $('#account').addClass('short-password').attr('placeholder', response.error);
+                        } else if (response.error === '密码格式不正确') {
+                            $('#password').addClass('short-password').attr('placeholder', response.error);
+                        } else if (response.error === '两次输入的密码不一致') {
+                            $('#password2').addClass('short-password').attr('placeholder', response.error);
+                        } else {
+                            alert('注册失败');
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error: " + error);
+                }
+            });
+
+            $('#account').val('');
+            $('#password').val('');
+            $('#password2').val('');
+        }
+    </script>
+{% endblock %}

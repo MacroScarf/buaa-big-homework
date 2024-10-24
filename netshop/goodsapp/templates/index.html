@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    商品首页
+{% endblock %}
+
+{% block headerjs %}
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/css/search.css">
+{% endblock %}
+
+{% block main %}
+    <!-- 返回顶部按钮 -->
+    <div class="fixed-bar">
+        <a id="back-to-top" href="#">
+            <img src="/static/images/icon/backtop_icon.png" height="30px" width="30px">
+            <span>回顶部</span>
+        </a>
+    </div>
+    <!--搜索框-->
+    <div class="top">
+        <div class="Logo">
+            <a href="/goods/">
+                <img src="/static/images/logo.png" height="120px" width="120px" alt="淘多多Logo">
+            </a>
+        </div>
+
+        <div class="gap" style="width: 20px;"></div>
+
+        <div class="search-container">
+            <form id="search-form" action="/goods/search/" method="GET">
+                <div class="select-container">
+                    <select id="search-type" name="type">
+                        <option value="goods">宝贝</option>
+                        <option value="shops">店铺</option>
+                    </select>
+                </div>
+                <input type="text" name="searchContent" class="search-input" placeholder="请输入搜索内容">
+                <button type="submit" class="search-button">搜索</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="body">
+        <!--轮播图-->
+        <div class="container">
+            <div class="img-list">
+                <img src="/static/images/slideImg/image3.png">
+                <img src="/static/images/slideImg/image2.jpg">
+            </div>
+            <!-- 图片导航器-->
+            <ul id="img-direction" class="img-direction">
+                <li class="move"></li>
+                <li></li>
+            </ul>
+        </div>
+
+        <!--分类-->
+        <div class="classes">
+            <ul class="classes-items">
+                <li class="slide2"></li>
+                {% for category in categoryList %}
+                    <li class="items {% if category.id == cid %}active {% endif %}">
+                        <a href="/goods/category/{{ category.id }}">{{ category.cname }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <!--物品展示-->
+        <div class="goods-model">
+            <div class="goods-content">
+                {% for goods in goodsList %}
+                    {% if goods.isdelete == False %}
+                        {% if cid == 12 %}
+                            {% if not goods.isdelete %}
+                                <div class="good">
+                                    <a href="/goods/usedgoodsdetail/{{ goods.id }}">
+                                        <img src="{{ goods.getColorImg }}">
+                                        <div class="name">{{ goods.gname }}</div>
+                                        <div class="price">
+                                            <i>￥</i>
+                                            <p class="big">{{ goods.price }}</p>
+                                        </div>
+                                   z </a>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="good">
+                                <a href="/goods/goodsdetails/{{ goods.id }}">
+                                    {% load good_filters %}
+                                    <img src="{{ goods.getColorImg }}">
+                                    <div class="name">{{ goods.gname }}</div>
+                                    <div class="sales-volume">已售：{{ goods.getSalesVolume|format_num }}</div>
+                                    <div class="price">
+                                        <i>￥</i>
+                                        <p class="big">{{ goods.price }}</p>
+                                    </div>
+                                    {% if goods.isHot %}
+                                        <div class="hotLabel" goodsid="{{ goods.id }}">HOT</div>
+                                    {% endif %}
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="pager" style="text-align: center; font-size: 16px; overflow: hidden; margin-top: 10px;">
+            {% if goodsList.has_previous %}
+                <a href="/goods/category/{{ cid }}/page/{{ goodsList.previous_page_number }}"
+                   style="display: inline-block; padding: 5px; margin: 5px;">上一页</a>
+            {% endif %}
+
+            {% for page in page_list %}
+                {% if page == num %}
+                    <span style="display: inline-block; padding: 5px; margin: 5px; color:orange;font-size:20px;">{{ num }}</span>
+                {% else %}
+                    <a href="/goods/category/{{ cid }}/page/{{ page }}"
+                       style="display: inline-block; padding: 5px; margin: 5px;">{{ page }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if goodsList.has_next %}
+                <a href="/goods/category/{{ cid }}/page/{{ goodsList.next_page_number }}"
+                   style="display: inline-block; padding: 5px; margin: 5px;">下一页</a>
+            {% endif %}
+        </div>
+
+
+    </div>
+{% endblock %}
+
+{% block footerjs %}
+    <script>
+
+        $(".classes-items a").on("click", function () {
+            var position = $(this).parent().position();
+            $(".classes-items .slide1").css({opacity: 1, left: +position.left});
+        });
+
+
+        $(".classes-items a").on("mouseover", function () {
+            var position = $(this).parent().position();
+            $(".classes-items .slide2").css({opacity: 1, left: +position.left}).addClass("squeeze");
+        });
+
+        $(".classes-items a").on("mouseout", function () {
+            $(".classes-items .slide2").css({opacity: 0}).removeClass("squeeze");
+        });
+
+
+        $(document).ready(function () {
+            let imgList = $('.img-list'); //获取图片容器元素
+            let listLeft = parseInt(imgList.css('left')); //获取图片容器当前的left的属性值
+            let imgs = $('.img-list>img') //获取所有图片
+            let imgSum = imgs.length; //获取所有图片的数量
+            const WIDTH = parseInt($('.container').css('width')); //获取可视窗口的宽度
+            let index = 0; //表示当前切换图片的索引值
+            // 图片导航器
+            let imgDir = $('.img-direction>li');
+            imgDir.mouseover(function () {
+                // 1、实现图片导航器的切换效果
+                //给自己上来move类并且将所有兄弟元素的move去除
+                $(this).addClass('move').siblings('li').removeClass();
+                /* 2、根据当前图片导航器的切换效果
+                    $.inArray(value,arr)
+                    * value - 表示在指定数组或集合中查找的数据
+                    * arr - 表示数组或集合
+                */
+                index = $.inArray(this, imgDir);
+                listLeft = -index * WIDTH;
+                imgList.css('left', listLeft);
+            });
+            // 自动轮播效果
+            setInterval(function () {
+                if (index < (imgSum - 1)) {
+                    // 1、将图片的索引值进行更新
+                    index++;
+                    //2、将图片容器当前的left属性值减少
+                    listLeft -= WIDTH;
+                } else {
+                    // 1、将图片的索引值进行更新为第一章图片
+                    index = 0;
+                    // 2、将图片容器当前的left属性值更新为0
+                    listLeft = 0;
+                }
+                // 3、将更新后的left属性值重新为图片容器进行设置
+                imgList.css('left', listLeft);
+
+                // 4、根据当前图片的索引值，查找对应的图片导航器
+                $(imgDir[index]).addClass('move').siblings('li').removeClass();
+            }, 2000);
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,11 @@
+.usedGoodsInformation {
+    margin-top: 0;
+    width: 98%;
+    height: 85%;
+    position: absolute;
+    padding: 0 20px 20px;
+    display: flex;
+    flex-wrap: wrap; /* 允许换行 */
+    align-content: flex-start;
+    overflow-y: auto;
+}

@@ -1,0 +1,84 @@
+.addressInformation {
+    width: 100%;
+    height: 85%;
+    position: absolute;
+    padding: 20px;
+}
+
+.addObj {
+    position: relative;
+    display: block;
+    width: 252px;
+    height: 150px;
+    float: left;
+    background: url("../images/peraddbg.png");
+    margin-right: 20px;
+    margin-bottom: 15px;
+    padding: 10px;
+}
+
+.areaa {
+    margin: 0 0 5px 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.user-detail {
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 14px;
+    word-wrap: break-word; /* 允许在单词内换行 */
+    max-width: 100%;
+}
+
+.addr-detail {
+    font-size: 14px;
+}
+
+.default-label {
+    font-size: 14px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 0 2px;
+    text-decoration: none;
+    opacity: 0.7;
+    z-index: 3;
+    background: #CCC;
+    color: #FFF;
+}
+
+.button-area {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.add-address-button {
+    margin: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.modify-address-button, .delete-address-button {
+    color: #3c3c3c;
+    background: none;
+    font-size: 14px;
+    padding: 0;
+    border-radius: 0;
+    position: relative;
+}
+
+.modify-address-button:hover, .delete-address-button:hover {
+    color: #7a7a7a;
+    background: none;
+}
+

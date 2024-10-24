@@ -1,0 +1,36 @@
+{% load good_filters %}
+{% if not results %}
+    <div class="no-results">未搜索到相关店铺</div>
+{% endif %}
+{% for shop in results %}
+    <div class="shop">
+        <div class="shop-card">
+            <img class="shop-logo" shopid="{{ shop.id }}" src="{{ shop.getLogoImage }}"
+                 style="cursor: pointer">
+            <div class="name" shopid="{{ shop.id }}">{{ shop.sname }}</div>
+            <div class="shopinfo">
+                <img src="/static/images/icon/shop_more_icon.png" width="20px" height="20px">
+                <div class="info-container">
+                    <div class="shop-rating">评分：{{ shop.rating }} 分</div>
+                    <div class="shop-fans">粉丝数：{{ shop.fan_num|format_num }} 人</div>
+                    <div class="shop-sales">总销量：{{ shop.getTotalSalesVolume|format_num }} 件</div>
+                </div>
+            </div>
+            {% if shop.getHotGoodsList %}
+                <div class="goodList">
+                    {% for good in shop.getHotGoodsList %}
+                        <div class="good-item">
+                            {% if  good.isHot %}
+                            	<div class="hot">Hot</div>
+                            {% endif %}
+                            <img src="{{ good.getColorImg }}" goodid={{ good.id }}>
+                            <div class="price">￥{{ good.price }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="goodList-else">商家目前还没上架商品</div>
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}
